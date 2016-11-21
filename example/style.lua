@@ -61,7 +61,6 @@ return function ()
 				nk.label('B: '..b)
 				b = nk.slider(0, b, 255, 1)
 				colors[name] = nk.color_rgba(r, g, b)
-				nk.layout_row('dynamic', 0, 0) -- Work-around for nuklear issue #282
 				nk.combobox_end()
 			end
 		end
