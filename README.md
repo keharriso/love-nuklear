@@ -75,7 +75,7 @@ end
 
 ## Building
 
-Windows binaries are available for each [release](https://github.com/keharriso/love-nuklear/releases).
+Windows and Linux binaries are available for each [release](https://github.com/keharriso/love-nuklear/releases).
 
 To build the library yourself, grab the code with:
 ```sh
