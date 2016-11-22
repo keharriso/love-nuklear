@@ -75,14 +75,14 @@ end
 
 ## Building
 
-Grab the code with:
+Windows binaries are available for each [release](https://github.com/keharriso/love-nuklear/releases).
+
+To build the library yourself, grab the code with:
 ```sh
 $ git clone --recursive git@github.com:keharriso/love-nuklear.git
 ```
 
 Compile with CMake (I recommend using the MinGW generator on Windows). You'll need to tell CMake where to find the LuaJIT headers and binaries. The end result is a native Lua module.
-
-
 
 ## Documentation
 
