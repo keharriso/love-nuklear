@@ -291,6 +291,15 @@ static void nk_love_draw_rect_multi_color(int x, int y, unsigned int w,
 	lua_getglobal(L, "love");
 	lua_getfield(L, -1, "graphics");
 
+	lua_getfield(L, -1, "push");
+	lua_pushstring(L, "all");
+	lua_call(L, 1, 0);
+	lua_getfield(L, -1, "setColor");
+	lua_pushnumber(L, 255);
+	lua_pushnumber(L, 255);
+	lua_pushnumber(L, 255);
+	lua_call(L, 3, 0);
+
 	lua_getfield(L, -1, "setPointSize");
 	lua_pushnumber(L, 0);
 	lua_call(L, 1, 0);
@@ -327,6 +336,8 @@ static void nk_love_draw_rect_multi_color(int x, int y, unsigned int w,
 	}
 	
 	lua_call(L, 1, 0);
+	lua_getfield(L, -1, "pop");
+	lua_call(L, 0, 0);
 	lua_pop(L, 2);
 }
 
