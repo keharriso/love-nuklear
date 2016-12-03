@@ -299,9 +299,8 @@ static void nk_love_draw_rect_multi_color(int x, int y, unsigned int w,
 	lua_pushnumber(L, 255);
 	lua_pushnumber(L, 255);
 	lua_call(L, 3, 0);
-
 	lua_getfield(L, -1, "setPointSize");
-	lua_pushnumber(L, 0);
+	lua_pushnumber(L, 1);
 	lua_call(L, 1, 0);
 
 	struct nk_color X1, X2, Y;
