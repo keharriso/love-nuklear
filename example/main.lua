@@ -12,12 +12,12 @@ function love.load()
 end
 
 function love.update(dt)
-	nk.frame_begin()
+	nk.frameBegin()
 		calculator()
 		style()
 		overview()
 		skin()
-	nk.frame_end()
+	nk.frameEnd()
 end
 
 function love.draw()

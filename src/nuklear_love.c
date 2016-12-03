@@ -26,7 +26,7 @@
  *
  * ===============================================================
  */
- 
+
 #define NK_LOVE_MAX_POINTS 256
 #define NK_LOVE_EDIT_BUFFER_LEN (1024 * 1024)
 #define NK_LOVE_COMBOBOX_MAX_ITEMS 1024
@@ -303,14 +303,14 @@ static void nk_love_draw_rect_multi_color(int x, int y, unsigned int w,
 	lua_getfield(L, -1, "setPointSize");
 	lua_pushnumber(L, 0);
 	lua_call(L, 1, 0);
-	
+
 	struct nk_color X1, X2, Y;
 	float fraction_x, fraction_y;
 	int i,j;
-	
+
 	lua_getfield(L, -1, "points");
 	lua_createtable(L, w * h, 0);
-	
+
 	for (j = 0; j < h; j++) {
 		fraction_y = ((float)j) / h;
 		for (i = 0; i < w; i++) {
@@ -334,7 +334,7 @@ static void nk_love_draw_rect_multi_color(int x, int y, unsigned int w,
 			lua_rawseti(L, -2, i + j * w + 1);
 		}
 	}
-	
+
 	lua_call(L, 1, 0);
 	lua_getfield(L, -1, "pop");
 	lua_call(L, 0, 0);
@@ -475,7 +475,7 @@ static int nk_love_keyevent(const char *key, const char *scancode,
 	lua_call(L, 1, 1);
 	int lctrl = lua_toboolean(L, -1);
 	lua_pop(L, 3);
-	
+
 	if (!strcmp(key, "rshift") || !strcmp(key, "lshift"))
 		nk_input_key(&context, NK_KEY_SHIFT, down);
 	else if (!strcmp(key, "delete"))
@@ -603,7 +603,7 @@ static void nk_love_assert_hex(char c, const char *message)
 {
 	nk_love_assert((c >= '0' && c <= '9')
 	            || (c >= 'a' && c <= 'f')
-	            || (c >= 'A' && c <= 'F'), message); 
+	            || (c >= 'A' && c <= 'F'), message);
 }
 
 static void nk_love_assert_color(int index, const char *message)
@@ -615,7 +615,7 @@ static void nk_love_assert_color(int index, const char *message)
 		nk_love_assert(color_string[0] == '#', message);
 		int i;
 		for (i = 1; i < len; ++i) {
-			nk_love_assert_hex(color_string[i], message); 
+			nk_love_assert_hex(color_string[i], message);
 		}
 	} else {
 		nk_love_error(message);
@@ -649,7 +649,7 @@ static nk_flags nk_love_parse_window_flags(int flags_begin) {
 			flags |= NK_WINDOW_BACKGROUND;
 		else
 			nk_love_error("unrecognized window flag");
-		
+
 	}
 	return flags;
 }
@@ -921,14 +921,14 @@ static int nk_love_wheelmoved(lua_State *L)
 static int nk_love_draw(lua_State *L)
 {
 	nk_love_assert(lua_gettop(L) == 0, "nk.draw: wrong number of arguments");
-	
+
 	lua_getglobal(L, "love");
 	lua_getfield(L, -1, "graphics");
-	
+
 	lua_getfield(L, -1, "push");
 	lua_pushstring(L, "all");
 	lua_call(L, 1, 0);
-	
+
 	const struct nk_command *cmd;
 	nk_foreach(cmd, &context)
 	{
@@ -1033,48 +1033,48 @@ static void nk_love_preserve_all(void)
 	nk_love_preserve(&context.style.button.normal);
 	nk_love_preserve(&context.style.button.hover);
 	nk_love_preserve(&context.style.button.active);
-	
+
 	nk_love_preserve(&context.style.contextual_button.normal);
 	nk_love_preserve(&context.style.contextual_button.hover);
 	nk_love_preserve(&context.style.contextual_button.active);
-	
+
 	nk_love_preserve(&context.style.menu_button.normal);
 	nk_love_preserve(&context.style.menu_button.hover);
 	nk_love_preserve(&context.style.menu_button.active);
-	
+
 	nk_love_preserve(&context.style.option.normal);
 	nk_love_preserve(&context.style.option.hover);
 	nk_love_preserve(&context.style.option.active);
 	nk_love_preserve(&context.style.option.cursor_normal);
 	nk_love_preserve(&context.style.option.cursor_hover);
-	
+
 	nk_love_preserve(&context.style.checkbox.normal);
 	nk_love_preserve(&context.style.checkbox.hover);
 	nk_love_preserve(&context.style.checkbox.active);
 	nk_love_preserve(&context.style.checkbox.cursor_normal);
 	nk_love_preserve(&context.style.checkbox.cursor_hover);
-	
+
 	nk_love_preserve(&context.style.selectable.normal);
 	nk_love_preserve(&context.style.selectable.hover);
 	nk_love_preserve(&context.style.selectable.pressed);
 	nk_love_preserve(&context.style.selectable.normal_active);
 	nk_love_preserve(&context.style.selectable.hover_active);
 	nk_love_preserve(&context.style.selectable.pressed_active);
-	
+
 	nk_love_preserve(&context.style.slider.normal);
 	nk_love_preserve(&context.style.slider.hover);
 	nk_love_preserve(&context.style.slider.active);
 	nk_love_preserve(&context.style.slider.cursor_normal);
 	nk_love_preserve(&context.style.slider.cursor_hover);
 	nk_love_preserve(&context.style.slider.cursor_active);
-	
+
 	nk_love_preserve(&context.style.progress.normal);
 	nk_love_preserve(&context.style.progress.hover);
 	nk_love_preserve(&context.style.progress.active);
 	nk_love_preserve(&context.style.progress.cursor_normal);
 	nk_love_preserve(&context.style.progress.cursor_hover);
 	nk_love_preserve(&context.style.progress.cursor_active);
-	
+
 	nk_love_preserve(&context.style.property.normal);
 	nk_love_preserve(&context.style.property.hover);
 	nk_love_preserve(&context.style.property.active);
@@ -1150,7 +1150,7 @@ static void nk_love_preserve_all(void)
 
 static int nk_love_frame_begin(lua_State *L)
 {
-	nk_love_assert(lua_gettop(L) == 0, "nk.frame_begin: wrong number of arguments");
+	nk_love_assert(lua_gettop(L) == 0, "nk.frameBegin: wrong number of arguments");
 	nk_input_end(&context);
 	lua_getglobal(L, "love");
 	lua_getfield(L, -1, "timer");
@@ -1184,7 +1184,7 @@ static int nk_love_frame_begin(lua_State *L)
 
 static int nk_love_frame_end(lua_State *L)
 {
-	nk_love_assert(lua_gettop(L) == 0, "nk.frame_end: wrong number of arguments");
+	nk_love_assert(lua_gettop(L) == 0, "nk.frameEnd: wrong number of arguments");
 	nk_input_begin(&context);
 	return 0;
 }
@@ -1194,21 +1194,21 @@ static int nk_love_window_begin(lua_State *L)
 	const char *name, *title;
 	int bounds_begin;
 	if (lua_type(L, 2) == LUA_TNUMBER) {
-		nk_love_assert(lua_gettop(L) >= 5, "nk.window_begin: wrong number of arguments");
-		nk_love_assert(lua_type(L, 1) == LUA_TSTRING, "nk.window_begin: arg 1 should be a string");
-		nk_love_assert(lua_type(L, 3) == LUA_TNUMBER, "nk.window_begin: arg 3 should be a number");
-		nk_love_assert(lua_type(L, 4) == LUA_TNUMBER, "nk.window_begin: arg 4 should be a number");
-		nk_love_assert(lua_type(L, 5) == LUA_TNUMBER, "nk.window_begin: arg 5 should be a number");
+		nk_love_assert(lua_gettop(L) >= 5, "nk.windowBegin: wrong number of arguments");
+		nk_love_assert(lua_type(L, 1) == LUA_TSTRING, "nk.windowBegin: arg 1 should be a string");
+		nk_love_assert(lua_type(L, 3) == LUA_TNUMBER, "nk.windowBegin: arg 3 should be a number");
+		nk_love_assert(lua_type(L, 4) == LUA_TNUMBER, "nk.windowBegin: arg 4 should be a number");
+		nk_love_assert(lua_type(L, 5) == LUA_TNUMBER, "nk.windowBegin: arg 5 should be a number");
 		name = title = lua_tostring(L, 1);
 		bounds_begin = 2;
 	} else {
-		nk_love_assert(lua_gettop(L) >= 6, "nk.window_begin: wrong number of arguments");
-		nk_love_assert(lua_type(L, 1) == LUA_TSTRING, "nk.window_begin: arg 1 should be a string");
-		nk_love_assert(lua_type(L, 2) == LUA_TSTRING, "nk.window_begin: arg 2 should be a string");
-		nk_love_assert(lua_type(L, 3) == LUA_TNUMBER, "nk.window_begin: arg 3 should be a number");
-		nk_love_assert(lua_type(L, 4) == LUA_TNUMBER, "nk.window_begin: arg 4 should be a number");
-		nk_love_assert(lua_type(L, 5) == LUA_TNUMBER, "nk.window_begin: arg 5 should be a number");
-		nk_love_assert(lua_type(L, 6) == LUA_TNUMBER, "nk.window_begin: arg 6 should be a number");
+		nk_love_assert(lua_gettop(L) >= 6, "nk.windowBegin: wrong number of arguments");
+		nk_love_assert(lua_type(L, 1) == LUA_TSTRING, "nk.windowBegin: arg 1 should be a string");
+		nk_love_assert(lua_type(L, 2) == LUA_TSTRING, "nk.windowBegin: arg 2 should be a string");
+		nk_love_assert(lua_type(L, 3) == LUA_TNUMBER, "nk.windowBegin: arg 3 should be a number");
+		nk_love_assert(lua_type(L, 4) == LUA_TNUMBER, "nk.windowBegin: arg 4 should be a number");
+		nk_love_assert(lua_type(L, 5) == LUA_TNUMBER, "nk.windowBegin: arg 5 should be a number");
+		nk_love_assert(lua_type(L, 6) == LUA_TNUMBER, "nk.windowBegin: arg 6 should be a number");
 		name = lua_tostring(L, 1);
 		title = lua_tostring(L, 2);
 		bounds_begin = 3;
@@ -1225,14 +1225,14 @@ static int nk_love_window_begin(lua_State *L)
 
 static int nk_love_window_end(lua_State *L)
 {
-	nk_love_assert(lua_gettop(L) == 0, "nk.window_end: wrong number of arguments");
+	nk_love_assert(lua_gettop(L) == 0, "nk.windowEnd: wrong number of arguments");
 	nk_end(&context);
 	return 0;
 }
 
 static int nk_love_window_get_bounds(lua_State *L)
 {
-	nk_love_assert(lua_gettop(L) == 0, "nk.window_get_bounds: wrong number of arguments");
+	nk_love_assert(lua_gettop(L) == 0, "nk.windowGetBounds: wrong number of arguments");
 	struct nk_rect rect = nk_window_get_bounds(&context);
 	lua_pushnumber(L, rect.x);
 	lua_pushnumber(L, rect.y);
@@ -1243,7 +1243,7 @@ static int nk_love_window_get_bounds(lua_State *L)
 
 static int nk_love_window_get_position(lua_State *L)
 {
-	nk_love_assert(lua_gettop(L) == 0, "nk.window_get_position: wrong number of arguments");
+	nk_love_assert(lua_gettop(L) == 0, "nk.windowGetPosition: wrong number of arguments");
 	struct nk_vec2 pos = nk_window_get_position(&context);
 	lua_pushnumber(L, pos.x);
 	lua_pushnumber(L, pos.y);
@@ -1252,7 +1252,7 @@ static int nk_love_window_get_position(lua_State *L)
 
 static int nk_love_window_get_size(lua_State *L)
 {
-	nk_love_assert(lua_gettop(L) == 0, "nk.window_get_size: wrong number of arguments");
+	nk_love_assert(lua_gettop(L) == 0, "nk.windowGetSize: wrong number of arguments");
 	struct nk_vec2 size = nk_window_get_size(&context);
 	lua_pushnumber(L, size.x);
 	lua_pushnumber(L, size.y);
@@ -1261,7 +1261,7 @@ static int nk_love_window_get_size(lua_State *L)
 
 static int nk_love_window_get_content_region(lua_State *L)
 {
-	nk_love_assert(lua_gettop(L) == 0, "nk.window_get_content_region: wrong number of arguments");
+	nk_love_assert(lua_gettop(L) == 0, "nk.windowGetContentRegion: wrong number of arguments");
 	struct nk_rect rect = nk_window_get_content_region(&context);
 	lua_pushnumber(L, rect.x);
 	lua_pushnumber(L, rect.y);
@@ -1272,7 +1272,7 @@ static int nk_love_window_get_content_region(lua_State *L)
 
 static int nk_love_window_has_focus(lua_State *L)
 {
-	nk_love_assert(lua_gettop(L) == 0, "nk.window_has_focus: wrong number of arguments");
+	nk_love_assert(lua_gettop(L) == 0, "nk.windowHasFocus: wrong number of arguments");
 	int has_focus = nk_window_has_focus(&context);
 	lua_pushboolean(L, has_focus);
 	return 1;
@@ -1280,8 +1280,8 @@ static int nk_love_window_has_focus(lua_State *L)
 
 static int nk_love_window_is_collapsed(lua_State *L)
 {
-	nk_love_assert(lua_gettop(L) == 1, "nk.window_is_collapsed: wrong number of arguments");
-	nk_love_assert(lua_type(L, 1) == LUA_TSTRING, "nk.window_is_collapsed: arg 1 should be a string");
+	nk_love_assert(lua_gettop(L) == 1, "nk.windowIsCollapsed: wrong number of arguments");
+	nk_love_assert(lua_type(L, 1) == LUA_TSTRING, "nk.windowIsCollapsed: arg 1 should be a string");
 	const char *name = lua_tostring(L, 1);
 	int is_collapsed = nk_window_is_collapsed(&context, name);
 	lua_pushboolean(L, is_collapsed);
@@ -1290,8 +1290,8 @@ static int nk_love_window_is_collapsed(lua_State *L)
 
 static int nk_love_window_is_hidden(lua_State *L)
 {
-	nk_love_assert(lua_gettop(L) == 1, "nk.window_is_hidden: wrong number of arguments");
-	nk_love_assert(lua_type(L, 1) == LUA_TSTRING, "nk.window_is_hidden: arg 1 should be a string");
+	nk_love_assert(lua_gettop(L) == 1, "nk.windowIsHidden: wrong number of arguments");
+	nk_love_assert(lua_type(L, 1) == LUA_TSTRING, "nk.windowIsHidden: arg 1 should be a string");
 	const char *name = lua_tostring(L, 1);
 	int is_hidden = nk_window_is_hidden(&context, name);
 	lua_pushboolean(L, is_hidden);
@@ -1299,8 +1299,8 @@ static int nk_love_window_is_hidden(lua_State *L)
 }
 
 static int nk_love_window_is_active(lua_State *L) {
-	nk_love_assert(lua_gettop(L) == 1, "nk.window_is_active: wrong number of arguments");
-	nk_love_assert(lua_type(L, 1) == LUA_TSTRING, "nk.window_is_active: arg 1 should be a string");
+	nk_love_assert(lua_gettop(L) == 1, "nk.windowIsActive: wrong number of arguments");
+	nk_love_assert(lua_type(L, 1) == LUA_TSTRING, "nk.windowIsActive: arg 1 should be a string");
 	const char *name = lua_tostring(L, 1);
 	int is_active = nk_window_is_active(&context, name);
 	lua_pushboolean(L, is_active);
@@ -1309,7 +1309,7 @@ static int nk_love_window_is_active(lua_State *L) {
 
 static int nk_love_window_is_hovered(lua_State *L)
 {
-	nk_love_assert(lua_gettop(L) == 0, "nk.window_is_hovered: wrong number of arguments");
+	nk_love_assert(lua_gettop(L) == 0, "nk.windowIsHovered: wrong number of arguments");
 	int is_hovered = nk_window_is_hovered(&context);
 	lua_pushboolean(L, is_hovered);
 	return 1;
@@ -1317,7 +1317,7 @@ static int nk_love_window_is_hovered(lua_State *L)
 
 static int nk_love_window_is_any_hovered(lua_State *L)
 {
-	nk_love_assert(lua_gettop(L) == 0, "nk.window_is_any_hovered: wrong number of arguments");
+	nk_love_assert(lua_gettop(L) == 0, "nk.windowIsAnyHovered: wrong number of arguments");
 	int is_any_hovered = nk_window_is_any_hovered(&context);
 	lua_pushboolean(L, is_any_hovered);
 	return 1;
@@ -1325,18 +1325,18 @@ static int nk_love_window_is_any_hovered(lua_State *L)
 
 static int nk_love_item_is_any_active(lua_State *L)
 {
-	nk_love_assert(lua_gettop(L) == 0, "nk.item_is_any_active: wrong number of arguments");
+	nk_love_assert(lua_gettop(L) == 0, "nk.itemIsAnyActive: wrong number of arguments");
 	lua_pushboolean(L, nk_love_is_active(&context));
 	return 1;
 }
 
 static int nk_love_window_set_bounds(lua_State *L)
 {
-	nk_love_assert(lua_gettop(L) == 4, "nk.window_set_bounds: wrong number of arguments");
-	nk_love_assert(lua_type(L, 1) == LUA_TNUMBER, "nk.window_set_bounds: arg 1 should be a number");
-	nk_love_assert(lua_type(L, 2) == LUA_TNUMBER, "nk.window_set_bounds: arg 2 should be a number");
-	nk_love_assert(lua_type(L, 3) == LUA_TNUMBER, "nk.window_set_bounds: arg 3 should be a number");
-	nk_love_assert(lua_type(L, 4) == LUA_TNUMBER, "nk.window_set_bounds: arg 4 should be a number");
+	nk_love_assert(lua_gettop(L) == 4, "nk.windowSetBounds: wrong number of arguments");
+	nk_love_assert(lua_type(L, 1) == LUA_TNUMBER, "nk.windowSetBounds: arg 1 should be a number");
+	nk_love_assert(lua_type(L, 2) == LUA_TNUMBER, "nk.windowSetBounds: arg 2 should be a number");
+	nk_love_assert(lua_type(L, 3) == LUA_TNUMBER, "nk.windowSetBounds: arg 3 should be a number");
+	nk_love_assert(lua_type(L, 4) == LUA_TNUMBER, "nk.windowSetBounds: arg 4 should be a number");
 	struct nk_rect bounds;
 	bounds.x = lua_tonumber(L, 1);
 	bounds.y = lua_tonumber(L, 2);
@@ -1348,9 +1348,9 @@ static int nk_love_window_set_bounds(lua_State *L)
 
 static int nk_love_window_set_position(lua_State *L)
 {
-	nk_love_assert(lua_gettop(L) == 2, "nk.window_set_position: wrong number of arguments");
-	nk_love_assert(lua_type(L, 1) == LUA_TNUMBER, "nk.window_set_position: arg 1 should be a number");
-	nk_love_assert(lua_type(L, 2) == LUA_TNUMBER, "nk.window_set_position: arg 2 should be a number");
+	nk_love_assert(lua_gettop(L) == 2, "nk.windowSetPosition: wrong number of arguments");
+	nk_love_assert(lua_type(L, 1) == LUA_TNUMBER, "nk.windowSetPosition: arg 1 should be a number");
+	nk_love_assert(lua_type(L, 2) == LUA_TNUMBER, "nk.windowSetPosition: arg 2 should be a number");
 	struct nk_vec2 pos;
 	pos.x = lua_tonumber(L, 1);
 	pos.y = lua_tonumber(L, 2);
@@ -1360,9 +1360,9 @@ static int nk_love_window_set_position(lua_State *L)
 
 static int nk_love_window_set_size(lua_State *L)
 {
-	nk_love_assert(lua_gettop(L) == 2, "nk.window_set_size: wrong number of arguments");
-	nk_love_assert(lua_type(L, 1) == LUA_TNUMBER, "nk.window_set_size: arg 1 should be a number");
-	nk_love_assert(lua_type(L, 2) == LUA_TNUMBER, "nk.window_set_size: arg 2 should be a number");
+	nk_love_assert(lua_gettop(L) == 2, "nk.windowSetSize: wrong number of arguments");
+	nk_love_assert(lua_type(L, 1) == LUA_TNUMBER, "nk.windowSetSize: arg 1 should be a number");
+	nk_love_assert(lua_type(L, 2) == LUA_TNUMBER, "nk.windowSetSize: arg 2 should be a number");
 	struct nk_vec2 size;
 	size.x = lua_tonumber(L, 1);
 	size.y = lua_tonumber(L, 2);
@@ -1372,8 +1372,8 @@ static int nk_love_window_set_size(lua_State *L)
 
 static int nk_love_window_set_focus(lua_State *L)
 {
-	nk_love_assert(lua_gettop(L) == 1, "nk.window_set_focus: wrong number of arguments");
-	nk_love_assert(lua_type(L, 1) == LUA_TSTRING, "nk.window_set_focus: arg 1 should be a string");
+	nk_love_assert(lua_gettop(L) == 1, "nk.windowSetFocus: wrong number of arguments");
+	nk_love_assert(lua_type(L, 1) == LUA_TSTRING, "nk.windowSetFocus: arg 1 should be a string");
 	const char *name = lua_tostring(L, 1);
 	nk_window_set_focus(&context, name);
 	return 0;
@@ -1381,8 +1381,8 @@ static int nk_love_window_set_focus(lua_State *L)
 
 static int nk_love_window_close(lua_State *L)
 {
-	nk_love_assert(lua_gettop(L) == 1, "nk.window_close: wrong number of arguments");
-	nk_love_assert(lua_type(L, 1) == LUA_TSTRING, "nk.window_close: arg 1 should be a string");
+	nk_love_assert(lua_gettop(L) == 1, "nk.windowClose: wrong number of arguments");
+	nk_love_assert(lua_type(L, 1) == LUA_TSTRING, "nk.windowClose: arg 1 should be a string");
 	const char *name = lua_tostring(L, 1);
 	nk_window_close(&context, name);
 	return 0;
@@ -1390,8 +1390,8 @@ static int nk_love_window_close(lua_State *L)
 
 static int nk_love_window_collapse(lua_State *L)
 {
-	nk_love_assert(lua_gettop(L) == 1, "nk.window_collapse: wrong number of arguments");
-	nk_love_assert(lua_type(L, 1) == LUA_TSTRING, "nk.window_collapse: arg 1 should be a string");
+	nk_love_assert(lua_gettop(L) == 1, "nk.windowCollapse: wrong number of arguments");
+	nk_love_assert(lua_type(L, 1) == LUA_TSTRING, "nk.windowCollapse: arg 1 should be a string");
 	const char *name = lua_tostring(L, 1);
 	nk_window_collapse(&context, name, NK_MINIMIZED);
 	return 0;
@@ -1399,8 +1399,8 @@ static int nk_love_window_collapse(lua_State *L)
 
 static int nk_love_window_expand(lua_State *L)
 {
-	nk_love_assert(lua_gettop(L) == 1, "nk.window_expand: wrong number of arguments");
-	nk_love_assert(lua_type(L, 1) == LUA_TSTRING, "nk.window_expand: arg 1 should be a string");
+	nk_love_assert(lua_gettop(L) == 1, "nk.windowExpand: wrong number of arguments");
+	nk_love_assert(lua_type(L, 1) == LUA_TSTRING, "nk.windowExpand: arg 1 should be a string");
 	const char *name = lua_tostring(L, 1);
 	nk_window_collapse(&context, name, NK_MAXIMIZED);
 	return 0;
@@ -1408,8 +1408,8 @@ static int nk_love_window_expand(lua_State *L)
 
 static int nk_love_window_show(lua_State *L)
 {
-	nk_love_assert(lua_gettop(L) == 1, "nk.window_show: wrong number of arguments");
-	nk_love_assert(lua_type(L, 1) == LUA_TSTRING, "nk.window_show: arg 1 should be a string");
+	nk_love_assert(lua_gettop(L) == 1, "nk.windowShow: wrong number of arguments");
+	nk_love_assert(lua_type(L, 1) == LUA_TSTRING, "nk.windowShow: arg 1 should be a string");
 	const char *name = lua_tostring(L, 1);
 	nk_window_show(&context, name, NK_SHOWN);
 	return 0;
@@ -1417,8 +1417,8 @@ static int nk_love_window_show(lua_State *L)
 
 static int nk_love_window_hide(lua_State *L)
 {
-	nk_love_assert(lua_gettop(L) == 1, "nk.window_hide: wrong number of arguments");
-	nk_love_assert(lua_type(L, 1) == LUA_TSTRING, "nk.window_hide: arg 1 should be a string");
+	nk_love_assert(lua_gettop(L) == 1, "nk.windowHide: wrong number of arguments");
+	nk_love_assert(lua_type(L, 1) == LUA_TSTRING, "nk.windowHide: arg 1 should be a string");
 	const char *name = lua_tostring(L, 1);
 	nk_window_show(&context, name, NK_HIDDEN);
 	return 0;
@@ -1427,37 +1427,37 @@ static int nk_love_window_hide(lua_State *L)
 static int nk_love_layout_row(lua_State *L)
 {
 	int argc = lua_gettop(L);
-	nk_love_assert(argc == 3 || argc == 4, "nk.layout_row: wrong number of arguments");
-	nk_love_assert(lua_type(L, 1) == LUA_TSTRING, "nk.layout_row: arg 1 should be a string");
-	nk_love_assert(lua_type(L, 2) == LUA_TNUMBER, "nk.layout_row: arg 2 should be a number");
+	nk_love_assert(argc == 3 || argc == 4, "nk.layoutRow: wrong number of arguments");
+	nk_love_assert(lua_type(L, 1) == LUA_TSTRING, "nk.layoutRow: arg 1 should be a string");
+	nk_love_assert(lua_type(L, 2) == LUA_TNUMBER, "nk.layoutRow: arg 2 should be a number");
 	const char *type = lua_tostring(L, 1);
 	float height = lua_tonumber(L, 2);
 	enum nk_layout_format format;
 	int use_ratios = 0;
 	if (!strcmp(type, "dynamic")) {
-		nk_love_assert(argc == 3, "nk.layout_row: wrong number of arguments");
+		nk_love_assert(argc == 3, "nk.layoutRow: wrong number of arguments");
 		if (lua_type(L, 3) == LUA_TNUMBER) {
 			int cols = lua_tointeger(L, 3);
 			nk_layout_row_dynamic(&context, height, cols);
 		} else {
-			nk_love_assert(lua_type(L, 3) == LUA_TTABLE, "nk.layout_row: arg 3 should be a number or table");
+			nk_love_assert(lua_type(L, 3) == LUA_TTABLE, "nk.layoutRow: arg 3 should be a number or table");
 			format = NK_DYNAMIC;
 			use_ratios = 1;
 		}
 	} else if (!strcmp(type, "static")) {
 		if (argc == 4) {
-			nk_love_assert(lua_type(L, 3) == LUA_TNUMBER, "nk.layout_row: arg 3 should be a number");
-			nk_love_assert(lua_type(L, 4) == LUA_TNUMBER, "nk.layout_row: arg 4 should be a number");
+			nk_love_assert(lua_type(L, 3) == LUA_TNUMBER, "nk.layoutRow: arg 3 should be a number");
+			nk_love_assert(lua_type(L, 4) == LUA_TNUMBER, "nk.layoutRow: arg 4 should be a number");
 			int item_width = lua_tointeger(L, 3);
 			int cols = lua_tointeger(L, 4);
 			nk_layout_row_static(&context, height, item_width, cols);
 		} else {
-			nk_love_assert(lua_type(L, 3) == LUA_TTABLE, "nk.layout_row: arg 3 should be a number or table");
+			nk_love_assert(lua_type(L, 3) == LUA_TTABLE, "nk.layoutRow: arg 3 should be a number or table");
 			format = NK_STATIC;
 			use_ratios = 1;
 		}
 	} else {
-		nk_love_error("nk.layout_row: arg 1 should be 'dynamic' or 'static'");
+		nk_love_error("nk.layoutRow: arg 1 should be 'dynamic' or 'static'");
 	}
 	if (use_ratios) {
 		int cols = lua_objlen(L, -1);
@@ -1475,10 +1475,10 @@ static int nk_love_layout_row(lua_State *L)
 
 static int nk_love_layout_row_begin(lua_State *L)
 {
-	nk_love_assert(lua_gettop(L) == 3, "nk.layout_row_begin: wrong number of arguments");
-	nk_love_assert(lua_type(L, 1) == LUA_TSTRING, "nk.layout_row_begin: arg 1 should be a string");
-	nk_love_assert(lua_type(L, 2) == LUA_TNUMBER, "nk.layout_row_begin: arg 2 should be a number");
-	nk_love_assert(lua_type(L, 3) == LUA_TNUMBER, "nk.layout_row_begin: arg 3 should be a number");
+	nk_love_assert(lua_gettop(L) == 3, "nk.layoutRowBegin: wrong number of arguments");
+	nk_love_assert(lua_type(L, 1) == LUA_TSTRING, "nk.layoutRowBegin: arg 1 should be a string");
+	nk_love_assert(lua_type(L, 2) == LUA_TNUMBER, "nk.layoutRowBegin: arg 2 should be a number");
+	nk_love_assert(lua_type(L, 3) == LUA_TNUMBER, "nk.layoutRowBegin: arg 3 should be a number");
 	const char *type = lua_tostring(L, 1);
 	float height = lua_tonumber(L, 2);
 	int cols = lua_tointeger(L, 3);
@@ -1488,7 +1488,7 @@ static int nk_love_layout_row_begin(lua_State *L)
 	} else if (!strcmp(type, "static")) {
 		format = NK_STATIC;
 	} else {
-		nk_love_error("nk.layout_row_begin: arg 1 should be 'dynamic' or 'static'");
+		nk_love_error("nk.layoutRowBegin: arg 1 should be 'dynamic' or 'static'");
 	}
 	nk_layout_row_begin(&context, format, height, cols);
 	return 0;
@@ -1496,8 +1496,8 @@ static int nk_love_layout_row_begin(lua_State *L)
 
 static int nk_love_layout_row_push(lua_State *L)
 {
-	nk_love_assert(lua_gettop(L) == 1, "nk.layout_row_push: wrong number of arguments");
-	nk_love_assert(lua_type(L, 1) == LUA_TNUMBER, "nk.layout_row_push: arg 1 should be a number");
+	nk_love_assert(lua_gettop(L) == 1, "nk.layoutRowPush: wrong number of arguments");
+	nk_love_assert(lua_type(L, 1) == LUA_TNUMBER, "nk.layoutRowPush: arg 1 should be a number");
 	float value = lua_tonumber(L, 1);
 	nk_layout_row_push(&context, value);
 	return 0;
@@ -1505,17 +1505,17 @@ static int nk_love_layout_row_push(lua_State *L)
 
 static int nk_love_layout_row_end(lua_State *L)
 {
-	nk_love_assert(lua_gettop(L) == 0, "nk.layout_row_end: wrong number of arguments");
+	nk_love_assert(lua_gettop(L) == 0, "nk.layoutRowEnd: wrong number of arguments");
 	nk_layout_row_end(&context);
 	return 0;
 }
 
 static int nk_love_layout_space_begin(lua_State *L)
 {
-	nk_love_assert(lua_gettop(L) == 3, "nk.layout_space_begin: wrong number of arguments");
-	nk_love_assert(lua_type(L, 1) == LUA_TSTRING, "nk.layout_space_begin: arg 1 should be a string");
-	nk_love_assert(lua_type(L, 2) == LUA_TNUMBER, "nk.layout_space_begin: arg 2 should be a number");
-	nk_love_assert(lua_type(L, 3) == LUA_TNUMBER, "nk.layout_space_begin: arg 3 should be a number");
+	nk_love_assert(lua_gettop(L) == 3, "nk.layoutSpaceBegin: wrong number of arguments");
+	nk_love_assert(lua_type(L, 1) == LUA_TSTRING, "nk.layoutSpaceBegin: arg 1 should be a string");
+	nk_love_assert(lua_type(L, 2) == LUA_TNUMBER, "nk.layoutSpaceBegin: arg 2 should be a number");
+	nk_love_assert(lua_type(L, 3) == LUA_TNUMBER, "nk.layoutSpaceBegin: arg 3 should be a number");
 	const char *type = lua_tostring(L, 1);
 	float height = lua_tonumber(L, 2);
 	int widget_count = lua_tointeger(L, 3);
@@ -1525,7 +1525,7 @@ static int nk_love_layout_space_begin(lua_State *L)
 	} else if (!strcmp(type, "static")) {
 		format = NK_LAYOUT_STATIC;
 	} else {
-		nk_love_error("nk.layout_space_begin: arg 1 should be 'dynamic' or 'static'");
+		nk_love_error("nk.layoutSpaceBegin: arg 1 should be 'dynamic' or 'static'");
 	}
 	nk_layout_space_begin(&context, format, height, widget_count);
 	return 0;
@@ -1533,11 +1533,11 @@ static int nk_love_layout_space_begin(lua_State *L)
 
 static int nk_love_layout_space_push(lua_State *L)
 {
-	nk_love_assert(lua_gettop(L) == 4, "nk.layout_space_push: wrong number of arguments");
-	nk_love_assert(lua_type(L, 1) == LUA_TNUMBER, "nk.layout_space_push: arg 1 should be a number");
-	nk_love_assert(lua_type(L, 2) == LUA_TNUMBER, "nk.layout_space_push: arg 2 should be a number");
-	nk_love_assert(lua_type(L, 3) == LUA_TNUMBER, "nk.layout_space_push: arg 3 should be a number");
-	nk_love_assert(lua_type(L, 4) == LUA_TNUMBER, "nk.layout_space_push: arg 4 should be a number");
+	nk_love_assert(lua_gettop(L) == 4, "nk.layoutSpacePush: wrong number of arguments");
+	nk_love_assert(lua_type(L, 1) == LUA_TNUMBER, "nk.layoutSpacePush: arg 1 should be a number");
+	nk_love_assert(lua_type(L, 2) == LUA_TNUMBER, "nk.layoutSpacePush: arg 2 should be a number");
+	nk_love_assert(lua_type(L, 3) == LUA_TNUMBER, "nk.layoutSpacePush: arg 3 should be a number");
+	nk_love_assert(lua_type(L, 4) == LUA_TNUMBER, "nk.layoutSpacePush: arg 4 should be a number");
 	float x = lua_tonumber(L, 1);
 	float y = lua_tonumber(L, 2);
 	float width = lua_tonumber(L, 3);
@@ -1548,14 +1548,14 @@ static int nk_love_layout_space_push(lua_State *L)
 
 static int nk_love_layout_space_end(lua_State *L)
 {
-	nk_love_assert(lua_gettop(L) == 0, "nk.layout_space_end: wrong number of arguments");
+	nk_love_assert(lua_gettop(L) == 0, "nk.layoutSpaceEnd: wrong number of arguments");
 	nk_layout_space_end(&context);
 	return 0;
 }
 
 static int nk_love_layout_space_bounds(lua_State *L)
 {
-	nk_love_assert(lua_gettop(L) == 0, "nk.layout_space_bounds: wrong number of arguments");
+	nk_love_assert(lua_gettop(L) == 0, "nk.layoutSpaceBounds: wrong number of arguments");
 	struct nk_rect bounds = nk_layout_space_bounds( &context);
 	lua_pushnumber(L, bounds.x);
 	lua_pushnumber(L, bounds.y);
@@ -1566,9 +1566,9 @@ static int nk_love_layout_space_bounds(lua_State *L)
 
 static int nk_love_layout_space_to_screen(lua_State *L)
 {
-	nk_love_assert(lua_gettop(L) == 2, "nk.layout_space_to_screen: wrong number of arguments");
-	nk_love_assert(lua_type(L, 1) == LUA_TNUMBER, "nk.layout_space_to_screen: arg 1 should be a number");
-	nk_love_assert(lua_type(L, 2) == LUA_TNUMBER, "nk.layout_space_to_screen: arg 2 should be a number");
+	nk_love_assert(lua_gettop(L) == 2, "nk.layoutSpaceToScreen: wrong number of arguments");
+	nk_love_assert(lua_type(L, 1) == LUA_TNUMBER, "nk.layoutSpaceToScreen: arg 1 should be a number");
+	nk_love_assert(lua_type(L, 2) == LUA_TNUMBER, "nk.layoutSpaceToScreen: arg 2 should be a number");
 	struct nk_vec2 local;
 	local.x = lua_tonumber(L, 1);
 	local.y = lua_tonumber(L, 2);
@@ -1580,9 +1580,9 @@ static int nk_love_layout_space_to_screen(lua_State *L)
 
 static int nk_love_layout_space_to_local(lua_State *L)
 {
-	nk_love_assert(lua_gettop(L) == 2, "nk.layout_space_to_local: wrong number of arguments");
-	nk_love_assert(lua_type(L, 1) == LUA_TNUMBER, "nk.layout_space_to_local: arg 1 should be a number");
-	nk_love_assert(lua_type(L, 2) == LUA_TNUMBER, "nk.layout_space_to_local: arg 2 should be a number");
+	nk_love_assert(lua_gettop(L) == 2, "nk.layoutSpaceToLocal: wrong number of arguments");
+	nk_love_assert(lua_type(L, 1) == LUA_TNUMBER, "nk.layoutSpaceToLocal: arg 1 should be a number");
+	nk_love_assert(lua_type(L, 2) == LUA_TNUMBER, "nk.layoutSpaceToLocal: arg 2 should be a number");
 	struct nk_vec2 screen;
 	screen.x = lua_tonumber(L, 1);
 	screen.y = lua_tonumber(L, 2);
@@ -1594,11 +1594,11 @@ static int nk_love_layout_space_to_local(lua_State *L)
 
 static int nk_love_layout_space_rect_to_screen(lua_State *L)
 {
-	nk_love_assert(lua_gettop(L) == 4, "nk.layout_space_rect_to_screen: wrong number of arguments");
-	nk_love_assert(lua_type(L, 1) == LUA_TNUMBER, "nk.layout_space_rect_to_screen: arg 1 should be a number");
-	nk_love_assert(lua_type(L, 2) == LUA_TNUMBER, "nk.layout_space_rect_to_screen: arg 2 should be a number");
-	nk_love_assert(lua_type(L, 3) == LUA_TNUMBER, "nk.layout_space_rect_to_screen: arg 3 should be a number");
-	nk_love_assert(lua_type(L, 4) == LUA_TNUMBER, "nk.layout_space_rect_to_screen: arg 4 should be a number");
+	nk_love_assert(lua_gettop(L) == 4, "nk.layoutSpaceRectToScreen: wrong number of arguments");
+	nk_love_assert(lua_type(L, 1) == LUA_TNUMBER, "nk.layoutSpaceRectToScreen: arg 1 should be a number");
+	nk_love_assert(lua_type(L, 2) == LUA_TNUMBER, "nk.layoutSpaceRectToScreen: arg 2 should be a number");
+	nk_love_assert(lua_type(L, 3) == LUA_TNUMBER, "nk.layoutSpaceRectToScreen: arg 3 should be a number");
+	nk_love_assert(lua_type(L, 4) == LUA_TNUMBER, "nk.layoutSpaceRectToScreen: arg 4 should be a number");
 	struct nk_rect local;
 	local.x = lua_tonumber(L, 1);
 	local.y = lua_tonumber(L, 2);
@@ -1614,11 +1614,11 @@ static int nk_love_layout_space_rect_to_screen(lua_State *L)
 
 static int nk_love_layout_space_rect_to_local(lua_State *L)
 {
-	nk_love_assert(lua_gettop(L) == 4, "nk.layout_space_rect_to_local: wrong number of arguments");
-	nk_love_assert(lua_type(L, 1) == LUA_TNUMBER, "nk.layout_space_rect_to_local: arg 1 should be a number");
-	nk_love_assert(lua_type(L, 2) == LUA_TNUMBER, "nk.layout_space_rect_to_local: arg 2 should be a number");
-	nk_love_assert(lua_type(L, 3) == LUA_TNUMBER, "nk.layout_space_rect_to_local: arg 3 should be a number");
-	nk_love_assert(lua_type(L, 4) == LUA_TNUMBER, "nk.layout_space_rect_to_local: arg 4 should be a number");
+	nk_love_assert(lua_gettop(L) == 4, "nk.layoutSpaceRectToLocal: wrong number of arguments");
+	nk_love_assert(lua_type(L, 1) == LUA_TNUMBER, "nk.layoutSpaceRectToLocal: arg 1 should be a number");
+	nk_love_assert(lua_type(L, 2) == LUA_TNUMBER, "nk.layoutSpaceRectToLocal: arg 2 should be a number");
+	nk_love_assert(lua_type(L, 3) == LUA_TNUMBER, "nk.layoutSpaceRectToLocal: arg 3 should be a number");
+	nk_love_assert(lua_type(L, 4) == LUA_TNUMBER, "nk.layoutSpaceRectToLocal: arg 4 should be a number");
 	struct nk_rect screen;
 	screen.x = lua_tonumber(L, 1);
 	screen.y = lua_tonumber(L, 2);
@@ -1634,8 +1634,8 @@ static int nk_love_layout_space_rect_to_local(lua_State *L)
 
 static int nk_love_layout_ratio_from_pixel(lua_State *L)
 {
-	nk_love_assert(lua_gettop(L) == 1, "nk.layout_ratio_from_pixel: wrong number of arguments");
-	nk_love_assert(lua_type(L, 1) == LUA_TNUMBER, "nk.layout_ratio_from_pixel: arg 1 should be a number");
+	nk_love_assert(lua_gettop(L) == 1, "nk.layoutRatioFromPixel: wrong number of arguments");
+	nk_love_assert(lua_type(L, 1) == LUA_TNUMBER, "nk.layoutRatioFromPixel: arg 1 should be a number");
 	float pixel_width = lua_tonumber(L, 1);
 	float ratio = nk_layout_ratio_from_pixel(&context, pixel_width);
 	lua_pushnumber(L, ratio);
@@ -1644,8 +1644,8 @@ static int nk_love_layout_ratio_from_pixel(lua_State *L)
 
 static int nk_love_group_begin(lua_State *L)
 {
-	nk_love_assert(lua_gettop(L) >= 1, "nk.group_begin: wrong number of arguments");
-	nk_love_assert(lua_type(L, 1) == LUA_TSTRING, "nk.group_begin: arg 1 should be a string");
+	nk_love_assert(lua_gettop(L) >= 1, "nk.groupBegin: wrong number of arguments");
+	nk_love_assert(lua_type(L, 1) == LUA_TSTRING, "nk.groupBegin: arg 1 should be a string");
 	const char *title = lua_tostring(L, 1);
 	nk_flags flags = nk_love_parse_window_flags(2);
 	int open = nk_group_begin(&context, title, flags);
@@ -1655,7 +1655,7 @@ static int nk_love_group_begin(lua_State *L)
 
 static int nk_love_group_end(lua_State *L)
 {
-	nk_love_assert(lua_gettop(L) == 0, "nk.group_end: wrong number of arguments");
+	nk_love_assert(lua_gettop(L) == 0, "nk.groupEnd: wrong number of arguments");
 	nk_group_end(&context);
 	return 0;
 }
@@ -1663,8 +1663,8 @@ static int nk_love_group_end(lua_State *L)
 static int nk_love_tree_push(lua_State *L)
 {
 	int argc = lua_gettop(L);
-	nk_love_assert(argc >= 2 && argc <= 4, "nk.tree_push: wrong number of arguments");
-	nk_love_assert(lua_type(L, 1) == LUA_TSTRING, "nk.tree_push: arg 1 should be a string");
+	nk_love_assert(argc >= 2 && argc <= 4, "nk.treePush: wrong number of arguments");
+	nk_love_assert(lua_type(L, 1) == LUA_TSTRING, "nk.treePush: arg 1 should be a string");
 	const char *type_string = lua_tostring(L, 1);
 	enum nk_tree_type type;
 	if (!strcmp(type_string, "node")) {
@@ -1672,21 +1672,21 @@ static int nk_love_tree_push(lua_State *L)
 	} else if (!strcmp(type_string, "tab")) {
 		type = NK_TREE_TAB;
 	} else {
-		nk_love_error("nk.tree_push: arg 1 should be 'node' or 'tab'");
+		nk_love_error("nk.treePush: arg 1 should be 'node' or 'tab'");
 	}
-	nk_love_assert(lua_type(L, 2) == LUA_TSTRING, "nk.tree_push: arg 2 should be a string");
+	nk_love_assert(lua_type(L, 2) == LUA_TSTRING, "nk.treePush: arg 2 should be a string");
 	const char *title = lua_tostring(L, 2);
 	struct nk_image image;
 	int use_image = 0;
 	if (argc >= 3 && lua_type(L, 3) != LUA_TNIL) {
-		nk_love_assert_type(3, "Image", "nk.tree_push: arg 3 should be an image");
+		nk_love_assert_type(3, "Image", "nk.treePush: arg 3 should be an image");
 		lua_pushvalue(L, 3);
 		nk_love_toimage(&image);
 		use_image = 1;
 	}
 	const char *state_string = "collapsed";
 	if (argc >= 4) {
-		nk_love_assert(lua_type(L, 4) == LUA_TSTRING, "nk.tree_push: arg 4 should be a string");
+		nk_love_assert(lua_type(L, 4) == LUA_TSTRING, "nk.treePush: arg 4 should be a string");
 		state_string = lua_tostring(L, 4);
 	}
 	enum nk_collapse_states state;
@@ -1695,7 +1695,7 @@ static int nk_love_tree_push(lua_State *L)
 	} else if (!strcmp(state_string, "expanded")) {
 		state = NK_MAXIMIZED;
 	} else {
-		nk_love_error("nk.tree_push: arg 4 should be 'collapsed' or 'expanded'");
+		nk_love_error("nk.treePush: arg 4 should be 'collapsed' or 'expanded'");
 	}
 	lua_Debug ar;
 	lua_getstack(L, 1, &ar);
@@ -1713,7 +1713,7 @@ static int nk_love_tree_push(lua_State *L)
 
 static int nk_love_tree_pop(lua_State *L)
 {
-	nk_love_assert(lua_gettop(L) == 0, "nk.tree_pop: wrong number of arguments");
+	nk_love_assert(lua_gettop(L) == 0, "nk.treePop: wrong number of arguments");
 	nk_tree_pop(&context);
 	return 0;
 }
@@ -1736,17 +1736,17 @@ static void nk_love_color(int r, int g, int b, int a, char *color_string)
 static int nk_love_color_rgba(lua_State *L)
 {
 	int argc = lua_gettop(L);
-	nk_love_assert(argc == 3 || argc == 4, "nk.color_rgba: wrong number of arguments");
-	nk_love_assert(lua_type(L, 1) == LUA_TNUMBER, "nk.color_rgba: arg 1 should be a number");
-	nk_love_assert(lua_type(L, 2) == LUA_TNUMBER, "nk.color_rgba: arg 2 should be a number");
-	nk_love_assert(lua_type(L, 3) == LUA_TNUMBER, "nk.color_rgba: arg 3 should be a number");
+	nk_love_assert(argc == 3 || argc == 4, "nk.colorRGBA: wrong number of arguments");
+	nk_love_assert(lua_type(L, 1) == LUA_TNUMBER, "nk.colorRGBA: arg 1 should be a number");
+	nk_love_assert(lua_type(L, 2) == LUA_TNUMBER, "nk.colorRGBA: arg 2 should be a number");
+	nk_love_assert(lua_type(L, 3) == LUA_TNUMBER, "nk.colorRGBA: arg 3 should be a number");
 
 	int r = lua_tointeger(L, 1);
 	int g = lua_tointeger(L, 2);
 	int b = lua_tointeger(L, 3);
 	int a = 255;
 	if (argc == 4) {
-		nk_love_assert(lua_type(L, 4) == LUA_TNUMBER, "nk.color_rgba: arg 4 should be a number");
+		nk_love_assert(lua_type(L, 4) == LUA_TNUMBER, "nk.colorRGBA: arg 4 should be a number");
 		a = lua_tointeger(L, 4);
 	}
 
@@ -1759,20 +1759,20 @@ static int nk_love_color_rgba(lua_State *L)
 static int nk_love_color_hsva(lua_State *L)
 {
 	int argc = lua_gettop(L);
-	nk_love_assert(argc == 3 || argc == 4, "nk.color_hsva: wrong number of arguments");
-	nk_love_assert(lua_type(L, 1) == LUA_TNUMBER, "nk.color_hsva: arg 1 should be a number");
-	nk_love_assert(lua_type(L, 2) == LUA_TNUMBER, "nk.color_hsva: arg 2 should be a number");
-	nk_love_assert(lua_type(L, 3) == LUA_TNUMBER, "nk.color_hsva: arg 3 should be a number");
+	nk_love_assert(argc == 3 || argc == 4, "nk.colorHSVA: wrong number of arguments");
+	nk_love_assert(lua_type(L, 1) == LUA_TNUMBER, "nk.colorHSVA: arg 1 should be a number");
+	nk_love_assert(lua_type(L, 2) == LUA_TNUMBER, "nk.colorHSVA: arg 2 should be a number");
+	nk_love_assert(lua_type(L, 3) == LUA_TNUMBER, "nk.colorHSVA: arg 3 should be a number");
 
 	int h = NK_CLAMP(0, lua_tointeger(L, 1), 255);
 	int s = NK_CLAMP(0, lua_tointeger(L, 2), 255);
 	int v = NK_CLAMP(0, lua_tointeger(L, 3), 255);
 	int a = 255;
 	if (argc == 4) {
-		nk_love_assert(lua_type(L, 4) == LUA_TNUMBER, "nk.color_hsva: arg 4 should be a number");
+		nk_love_assert(lua_type(L, 4) == LUA_TNUMBER, "nk.colorHSVA: arg 4 should be a number");
 		a = NK_CLAMP(0, lua_tointeger(L, 4), 255);
 	}
-	
+
 	struct nk_color rgba = nk_hsva(h, s, v, a);
 	char color_string[10];
 	nk_love_color(rgba.r, rgba.g, rgba.b, rgba.a, color_string);
@@ -1794,8 +1794,8 @@ static struct nk_color nk_love_color_parse(const char *color_string)
 
 static int nk_love_color_parse_rgba(lua_State *L)
 {
-	nk_love_assert(lua_gettop(L) == 1, "nk.color_parse_rgba: wrong number of arguments");
-	nk_love_assert_color(1, "nk.color_parse_rgba: arg 1 should be a color string");
+	nk_love_assert(lua_gettop(L) == 1, "nk.colorParseRGBA: wrong number of arguments");
+	nk_love_assert_color(1, "nk.colorParseRGBA: arg 1 should be a color string");
 	const char *color_string = lua_tostring(L, 1);
 	struct nk_color rgba = nk_love_color_parse(color_string);
 	lua_pushnumber(L, rgba.r);
@@ -1807,8 +1807,8 @@ static int nk_love_color_parse_rgba(lua_State *L)
 
 static int nk_love_color_parse_hsva(lua_State *L)
 {
-	nk_love_assert(lua_gettop(L) == 1, "nk.color_parse_hsva: wrong number of arguments");
-	nk_love_assert_color(1, "nk.color_parse_hsva: arg 1 should be a color string");
+	nk_love_assert(lua_gettop(L) == 1, "nk.colorParseHSVA: wrong number of arguments");
+	nk_love_assert_color(1, "nk.colorParseHSVA: arg 1 should be a color string");
 	const char *color_string = lua_tostring(L, 1);
 	struct nk_color rgba = nk_love_color_parse(color_string);
 	int h, s, v, a2;
@@ -1929,8 +1929,8 @@ static int nk_love_button(lua_State *L)
 
 static int nk_love_button_set_behavior(lua_State *L)
 {
-	nk_love_assert(lua_gettop(L) == 1, "nk.button_set_behavior: wrong number of arguments");
-	nk_love_assert(lua_type(L, 1) == LUA_TSTRING, "nk.button_set_behavior: arg 1 should be 'default' or 'repeater'");
+	nk_love_assert(lua_gettop(L) == 1, "nk.buttonSetBehavior: wrong number of arguments");
+	nk_love_assert(lua_type(L, 1) == LUA_TSTRING, "nk.buttonSetBehavior: arg 1 should be 'default' or 'repeater'");
 	const char *behavior_string = lua_tostring(L, 1);
 	enum nk_button_behavior behavior;
 	if (!strcmp(behavior_string, "default")) {
@@ -1938,7 +1938,7 @@ static int nk_love_button_set_behavior(lua_State *L)
 	} else if (!strcmp(behavior_string, "repeater")) {
 		behavior = NK_BUTTON_REPEATER;
 	} else {
-		nk_love_error("nk.button_set_behavior: arg 1 should be 'default' or 'repeater'");
+		nk_love_error("nk.buttonSetBehavior: arg 1 should be 'default' or 'repeater'");
 	}
 	nk_button_set_behavior(&context, behavior);
 	return 0;
@@ -1946,8 +1946,8 @@ static int nk_love_button_set_behavior(lua_State *L)
 
 static int nk_love_button_push_behavior(lua_State *L)
 {
-	nk_love_assert(lua_gettop(L) == 1, "nk.button_push_behavior: wrong number of arguments");
-	nk_love_assert(lua_type(L, 1) == LUA_TSTRING, "nk.button_push_behavior: arg 1 should be 'default' or 'repeater'");
+	nk_love_assert(lua_gettop(L) == 1, "nk.buttonPushBehavior: wrong number of arguments");
+	nk_love_assert(lua_type(L, 1) == LUA_TSTRING, "nk.buttonPushBehavior: arg 1 should be 'default' or 'repeater'");
 	const char *behavior_string = lua_tostring(L, 1);
 	enum nk_button_behavior behavior;
 	if (!strcmp(behavior_string, "default")) {
@@ -1955,7 +1955,7 @@ static int nk_love_button_push_behavior(lua_State *L)
 	} else if (!strcmp(behavior_string, "repeater")) {
 		behavior = NK_BUTTON_REPEATER;
 	} else {
-		nk_love_error("nk.button_push_behavior: arg 1 should be 'default' or 'repeater'");
+		nk_love_error("nk.buttonPushBehavior: arg 1 should be 'default' or 'repeater'");
 	}
 	nk_button_push_behavior(&context, behavior);
 	return 0;
@@ -1963,7 +1963,7 @@ static int nk_love_button_push_behavior(lua_State *L)
 
 static int nk_love_button_pop_behavior(lua_State *L)
 {
-	nk_love_assert(lua_gettop(L) == 0, "nk.button_pop_behavior: wrong number of arguments");
+	nk_love_assert(lua_gettop(L) == 0, "nk.buttonPopBehavior: wrong number of arguments");
 	nk_button_pop_behavior(&context);
 	return 0;
 }
@@ -2151,10 +2151,10 @@ static int nk_love_progress(lua_State *L)
 static int nk_love_color_picker(lua_State *L)
 {
 	int argc = lua_gettop(L);
-	nk_love_assert(argc == 1 || argc == 2, "nk.color_picker: wrong number of arguments");
+	nk_love_assert(argc == 1 || argc == 2, "nk.colorPicker: wrong number of arguments");
 	const char *format_string = "RGB";
 	if (argc == 2) {
-		nk_love_assert(lua_type(L, 2) == LUA_TSTRING, "nk.color_picker: arg 2 should be a string");
+		nk_love_assert(lua_type(L, 2) == LUA_TSTRING, "nk.colorPicker: arg 2 should be a string");
 		format_string = lua_tostring(L, 2);
 	}
 	enum nk_color_format format;
@@ -2163,10 +2163,10 @@ static int nk_love_color_picker(lua_State *L)
 	} else if (!strcmp(format_string, "RGBA")) {
 		format = NK_RGBA;
 	} else {
-		nk_love_error("nk.color_picker: arg 2 should be 'RGB' or 'RGBA'");
+		nk_love_error("nk.colorPicker: arg 2 should be 'RGB' or 'RGBA'");
 	}
 	if (lua_type(L, 1) == LUA_TSTRING) {
-		nk_love_assert_color(1, "nk.color_picker: arg 1 should be a color string");
+		nk_love_assert_color(1, "nk.colorPicker: arg 1 should be a color string");
 		const char *color_string = lua_tostring(L, 1);
 		struct nk_color color = nk_love_color_parse(color_string);
 		color = nk_color_picker(&context, color, format);
@@ -2175,7 +2175,7 @@ static int nk_love_color_picker(lua_State *L)
 		lua_pushstring(L, new_color_string);
 	} else if (lua_type(L, 1) == LUA_TTABLE) {
 		lua_getfield(L, 1, "value");
-		nk_love_assert_color(-1, "nk.color_picker: arg 1 should have a color string value");
+		nk_love_assert_color(-1, "nk.colorPicker: arg 1 should have a color string value");
 		const char *color_string = lua_tostring(L, -1);
 		struct nk_color color = nk_love_color_parse(color_string);
 		int changed = nk_color_pick(&context, &color, format);
@@ -2271,13 +2271,13 @@ static int nk_love_edit(lua_State *L)
 
 static int nk_love_popup_begin(lua_State *L)
 {
-	nk_love_assert(lua_gettop(L) >= 6, "nk.popup_begin: wrong number of arguments");
-	nk_love_assert(lua_type(L, 1) == LUA_TSTRING, "nk.popup_begin: arg 1 should be a string");
-	nk_love_assert(lua_type(L, 2) == LUA_TSTRING, "nk.popup_begin: arg 2 should be a string");
-	nk_love_assert(lua_type(L, 3) == LUA_TNUMBER, "nk.popup_begin: arg 3 should be a number");
-	nk_love_assert(lua_type(L, 4) == LUA_TNUMBER, "nk.popup_begin: arg 4 should be a number");
-	nk_love_assert(lua_type(L, 5) == LUA_TNUMBER, "nk.popup_begin: arg 5 should be a number");
-	nk_love_assert(lua_type(L, 6) == LUA_TNUMBER, "nk.popup_begin: arg 6 should be a number");
+	nk_love_assert(lua_gettop(L) >= 6, "nk.popupBegin: wrong number of arguments");
+	nk_love_assert(lua_type(L, 1) == LUA_TSTRING, "nk.popupBegin: arg 1 should be a string");
+	nk_love_assert(lua_type(L, 2) == LUA_TSTRING, "nk.popupBegin: arg 2 should be a string");
+	nk_love_assert(lua_type(L, 3) == LUA_TNUMBER, "nk.popupBegin: arg 3 should be a number");
+	nk_love_assert(lua_type(L, 4) == LUA_TNUMBER, "nk.popupBegin: arg 4 should be a number");
+	nk_love_assert(lua_type(L, 5) == LUA_TNUMBER, "nk.popupBegin: arg 5 should be a number");
+	nk_love_assert(lua_type(L, 6) == LUA_TNUMBER, "nk.popupBegin: arg 6 should be a number");
 	const char *type_string = lua_tostring(L, 1);
 	enum nk_popup_type type;
 	if (!strcmp(type_string, "dynamic")) {
@@ -2285,7 +2285,7 @@ static int nk_love_popup_begin(lua_State *L)
 	} else if (!strcmp(type_string, "static")) {
 		type = NK_POPUP_STATIC;
 	} else {
-		nk_love_error("nk.popup_begin: arg 1 should be 'dynamic' or 'static'");
+		nk_love_error("nk.popupBegin: arg 1 should be 'dynamic' or 'static'");
 	}
 	const char *title = lua_tostring(L, 2);
 	struct nk_rect bounds;
@@ -2301,14 +2301,14 @@ static int nk_love_popup_begin(lua_State *L)
 
 static int nk_love_popup_close(lua_State *L)
 {
-	nk_love_assert(lua_gettop(L) == 0, "nk.popup_close: wrong number of arguments");
+	nk_love_assert(lua_gettop(L) == 0, "nk.popupClose: wrong number of arguments");
 	nk_popup_close(&context);
 	return 0;
 }
 
 static int nk_love_popup_end(lua_State *L)
 {
-	nk_love_assert(lua_gettop(L) == 0, "nk.popup_end: wrong number of arguments");
+	nk_love_assert(lua_gettop(L) == 0, "nk.popupEnd: wrong number of arguments");
 	nk_popup_end(&context);
 	return 0;
 }
@@ -2359,7 +2359,7 @@ static int nk_love_combobox(lua_State *L)
 			lua_pushnumber(L, value + 1);
 			lua_setfield(L, 1, "value");
 		}
-		lua_pushboolean(L, changed); 
+		lua_pushboolean(L, changed);
 	} else {
 		nk_love_error("nk.combobox: arg 1 should be a number or table");
 	}
@@ -2369,8 +2369,8 @@ static int nk_love_combobox(lua_State *L)
 static int nk_love_combobox_begin(lua_State *L)
 {
 	int argc = lua_gettop(L);
-	nk_love_assert(argc >= 1 && argc <= 4, "nk.combobox_begin: wrong number of arguments");
-	nk_love_assert(lua_type(L, 1) == LUA_TSTRING || lua_type(L, 1) == LUA_TNUMBER || lua_type(L, 1) == LUA_TNIL, "nk.combobox_begin: arg 1 should be a string");
+	nk_love_assert(argc >= 1 && argc <= 4, "nk.comboboxBegin: wrong number of arguments");
+	nk_love_assert(lua_type(L, 1) == LUA_TSTRING || lua_type(L, 1) == LUA_TNUMBER || lua_type(L, 1) == LUA_TNIL, "nk.comboboxBegin: arg 1 should be a string");
 	const char *text = lua_tostring(L, 1);
 	struct nk_color color;
 	int use_color = 0;
@@ -2381,12 +2381,12 @@ static int nk_love_combobox_begin(lua_State *L)
 		if (lua_type(L, 2) == LUA_TSTRING) {
 			const char *s = lua_tostring(L, 2);
 			if (!nk_love_parse_symbol(s, &symbol)) {
-				nk_love_assert_color(2, "nk.combobox_begin: arg 1 should be a color string, symbol type, or image");
+				nk_love_assert_color(2, "nk.comboboxBegin: arg 1 should be a color string, symbol type, or image");
 				color = nk_love_color_parse(s);
 				use_color = 1;
 			}
 		} else {
-			nk_love_assert_type(2, "Image", "nk.combobox_begin: arg 1 should be a color string, symbol type, or image");
+			nk_love_assert_type(2, "Image", "nk.comboboxBegin: arg 1 should be a color string, symbol type, or image");
 			lua_pushvalue(L, 2);
 			nk_love_toimage(&image);
 			use_image = 1;
@@ -2395,17 +2395,17 @@ static int nk_love_combobox_begin(lua_State *L)
 	struct nk_rect bounds = nk_widget_bounds(&context);
 	struct nk_vec2 size = nk_vec2(bounds.w, bounds.h * 8);
 	if (argc >= 3 && lua_type(L, 3) != LUA_TNIL) {
-		nk_love_assert(lua_type(L, 3) == LUA_TNUMBER, "nk.combobox_begin: arg 3 should be a number");
+		nk_love_assert(lua_type(L, 3) == LUA_TNUMBER, "nk.comboboxBegin: arg 3 should be a number");
 		size.x = lua_tonumber(L, 3);
 	}
 	if (argc >= 4 && lua_type(L, 4) != LUA_TNIL) {
-		nk_love_assert(lua_type(L, 4) == LUA_TNUMBER, "nk.combobox_begin: arg 4 should be a number");
+		nk_love_assert(lua_type(L, 4) == LUA_TNUMBER, "nk.comboboxBegin: arg 4 should be a number");
 		size.y = lua_tonumber(L, 4);
 	}
 	int open = 0;
 	if (text != NULL) {
 		if (use_color) {
-			nk_love_error("nk.combobox_begin: color comboboxes can't have titles");
+			nk_love_error("nk.comboboxBegin: color comboboxes can't have titles");
 		} else if (symbol != NK_SYMBOL_NONE) {
 			open = nk_combo_begin_symbol_label(&context, text, symbol, size);
 		} else if (use_image) {
@@ -2421,7 +2421,7 @@ static int nk_love_combobox_begin(lua_State *L)
 		} else if (use_image) {
 			open = nk_combo_begin_image(&context, image, size);
 		} else {
-			nk_love_error("nk.combobox_begin: must specify color, symbol, image, and/or title");
+			nk_love_error("nk.comboboxBegin: must specify color, symbol, image, and/or title");
 		}
 	}
 	lua_pushboolean(L, open);
@@ -2431,8 +2431,8 @@ static int nk_love_combobox_begin(lua_State *L)
 static int nk_love_combobox_item(lua_State *L)
 {
 	int argc = lua_gettop(L);
-	nk_love_assert(argc >= 1 && argc <= 3, "nk.combobox_item: wrong number of arguments");
-	nk_love_assert(lua_type(L, 1) == LUA_TSTRING || lua_type(L, 1) == LUA_TNUMBER, "nk.combobox_item: arg 1 should be a string");
+	nk_love_assert(argc >= 1 && argc <= 3, "nk.comboboxItem: wrong number of arguments");
+	nk_love_assert(lua_type(L, 1) == LUA_TSTRING || lua_type(L, 1) == LUA_TNUMBER, "nk.comboboxItem: arg 1 should be a string");
 	const char *text = lua_tostring(L, 1);
 	enum nk_symbol_type symbol = NK_SYMBOL_NONE;
 	struct nk_image image;
@@ -2440,9 +2440,9 @@ static int nk_love_combobox_item(lua_State *L)
 	if (argc >= 2 && lua_type(L, 2) != LUA_TNIL) {
 		if (lua_type(L, 2) == LUA_TSTRING) {
 			const char *s = lua_tostring(L, 2);
-			nk_love_assert(nk_love_parse_symbol(s, &symbol), "nk.combobox_item: arg 2 should be a symbol type or image");
+			nk_love_assert(nk_love_parse_symbol(s, &symbol), "nk.comboboxItem: arg 2 should be a symbol type or image");
 		} else {
-			nk_love_assert_type(2, "Image", "nk.combobox_item: arg 1 should be a symbol type or image");
+			nk_love_assert_type(2, "Image", "nk.comboboxItem: arg 1 should be a symbol type or image");
 			lua_pushvalue(L, 2);
 			nk_love_toimage(&image);
 			use_image = 1;
@@ -2450,10 +2450,10 @@ static int nk_love_combobox_item(lua_State *L)
 	}
 	nk_flags align = NK_TEXT_LEFT;
 	if (argc >= 3 && lua_type(L, 3) != LUA_TNIL) {
-		nk_love_assert(lua_type(L, 3) == LUA_TSTRING, "nk.combobox_item: arg 3 should be a string");
+		nk_love_assert(lua_type(L, 3) == LUA_TSTRING, "nk.comboboxItem: arg 3 should be a string");
 		const char *align_string = lua_tostring(L, 3);
 		if (!nk_love_parse_align(align_string, &align)) {
-			nk_love_error("nk.combobox_item: arg 3 should be an alignment");
+			nk_love_error("nk.comboboxItem: arg 3 should be an alignment");
 		}
 	}
 	int activated = 0;
@@ -2470,27 +2470,27 @@ static int nk_love_combobox_item(lua_State *L)
 
 static int nk_love_combobox_close(lua_State *L)
 {
-	nk_love_assert(lua_gettop(L) == 0, "nk.combobox_close: wrong number of arguments");
+	nk_love_assert(lua_gettop(L) == 0, "nk.comboboxClose: wrong number of arguments");
 	nk_combo_close(&context);
 	return 0;
 }
 
 static int nk_love_combobox_end(lua_State *L)
 {
-	nk_love_assert(lua_gettop(L) == 0, "nk.combobox_end: wrong number of arguments");
+	nk_love_assert(lua_gettop(L) == 0, "nk.comboboxEnd: wrong number of arguments");
 	nk_combo_end(&context);
 	return 0;
 }
 
 static int nk_love_contextual_begin(lua_State *L)
 {
-	nk_love_assert(lua_gettop(L) >= 6, "nk.contextual_begin: wrong number of arguments");
-	nk_love_assert(lua_type(L, 1) == LUA_TNUMBER, "nk.contextual_begin: arg 1 should be a number");
-	nk_love_assert(lua_type(L, 2) == LUA_TNUMBER, "nk.contextual_begin: arg 2 should be a number");
-	nk_love_assert(lua_type(L, 3) == LUA_TNUMBER, "nk.contextual_begin: arg 3 should be a number");
-	nk_love_assert(lua_type(L, 4) == LUA_TNUMBER, "nk.contextual_begin: arg 4 should be a number");
-	nk_love_assert(lua_type(L, 5) == LUA_TNUMBER, "nk.contextual_begin: arg 5 should be a number");
-	nk_love_assert(lua_type(L, 6) == LUA_TNUMBER, "nk.contextual_begin: arg 6 should be a number");
+	nk_love_assert(lua_gettop(L) >= 6, "nk.contextualBegin: wrong number of arguments");
+	nk_love_assert(lua_type(L, 1) == LUA_TNUMBER, "nk.contextualBegin: arg 1 should be a number");
+	nk_love_assert(lua_type(L, 2) == LUA_TNUMBER, "nk.contextualBegin: arg 2 should be a number");
+	nk_love_assert(lua_type(L, 3) == LUA_TNUMBER, "nk.contextualBegin: arg 3 should be a number");
+	nk_love_assert(lua_type(L, 4) == LUA_TNUMBER, "nk.contextualBegin: arg 4 should be a number");
+	nk_love_assert(lua_type(L, 5) == LUA_TNUMBER, "nk.contextualBegin: arg 5 should be a number");
+	nk_love_assert(lua_type(L, 6) == LUA_TNUMBER, "nk.contextualBegin: arg 6 should be a number");
 	struct nk_vec2 size;
 	size.x = lua_tonumber(L, 1);
 	size.y = lua_tonumber(L, 2);
@@ -2508,8 +2508,8 @@ static int nk_love_contextual_begin(lua_State *L)
 static int nk_love_contextual_item(lua_State *L)
 {
 	int argc = lua_gettop(L);
-	nk_love_assert(argc >= 1 && argc <= 3, "nk.contextual_item: wrong number of arguments");
-	nk_love_assert(lua_type(L, 1) == LUA_TSTRING, "nk.contextual_item: arg 1 should be a string");
+	nk_love_assert(argc >= 1 && argc <= 3, "nk.contextualItem: wrong number of arguments");
+	nk_love_assert(lua_type(L, 1) == LUA_TSTRING, "nk.contextualItem: arg 1 should be a string");
 	const char *text = lua_tostring(L, 1);
 	enum nk_symbol_type symbol = NK_SYMBOL_NONE;
 	struct nk_image image;
@@ -2518,10 +2518,10 @@ static int nk_love_contextual_item(lua_State *L)
 		if (lua_type(L, 2) == LUA_TSTRING) {
 			const char *symbol_string = lua_tostring(L, 2);
 			if (!nk_love_parse_symbol(symbol_string, &symbol)) {
-				nk_love_error("nk.contextual_item: arg 1 should be a symbol type or image");
+				nk_love_error("nk.contextualItem: arg 1 should be a symbol type or image");
 			}
 		} else {
-			nk_love_assert_type(2, "Image", "nk.contextual_item: arg 1 should be a symbol type or image");
+			nk_love_assert_type(2, "Image", "nk.contextualItem: arg 1 should be a symbol type or image");
 			lua_pushvalue(L, 2);
 			nk_love_toimage(&image);
 			use_image = 1;
@@ -2529,10 +2529,10 @@ static int nk_love_contextual_item(lua_State *L)
 	}
 	nk_flags align = NK_TEXT_LEFT;
 	if (argc >= 3 && lua_type(L, 3) != LUA_TNIL) {
-		nk_love_assert(lua_type(L, 3) == LUA_TSTRING, "nk.contextual_item: arg 3 should be a string");
+		nk_love_assert(lua_type(L, 3) == LUA_TSTRING, "nk.contextualItem: arg 3 should be a string");
 		const char *align_string = lua_tostring(L, 3);
 		if (!nk_love_parse_align(align_string, &align)) {
-			nk_love_error("nk.contextual_item: arg 3 should be an alignment");
+			nk_love_error("nk.contextualItem: arg 3 should be an alignment");
 		}
 	}
 	int activated;
@@ -2549,14 +2549,14 @@ static int nk_love_contextual_item(lua_State *L)
 
 static int nk_love_contextual_close(lua_State *L)
 {
-	nk_love_assert(lua_gettop(L) == 0, "nk.contextual_close: wrong number of arguments");
+	nk_love_assert(lua_gettop(L) == 0, "nk.contextualClose: wrong number of arguments");
 	nk_contextual_close(&context);
 	return 0;
 }
 
 static int nk_love_contextual_end(lua_State *L)
 {
-	nk_love_assert(lua_gettop(L) == 0, "nk.contextual_end: wrong number of arguments");
+	nk_love_assert(lua_gettop(L) == 0, "nk.contextualEnd: wrong number of arguments");
 	nk_contextual_end(&context);
 	return 0;
 }
@@ -2572,8 +2572,8 @@ static int nk_love_tooltip(lua_State *L)
 
 static int nk_love_tooltip_begin(lua_State *L)
 {
-	nk_love_assert(lua_gettop(L) == 1, "nk.tooltip_begin: wrong number of arguments");
-	nk_love_assert(lua_type(L, 1) == LUA_TNUMBER, "nk.tooltip_begin: arg 1 should be a number");
+	nk_love_assert(lua_gettop(L) == 1, "nk.tooltipBegin: wrong number of arguments");
+	nk_love_assert(lua_type(L, 1) == LUA_TNUMBER, "nk.tooltipBegin: arg 1 should be a number");
 	float width = lua_tonumber(L, 1);
 	int open = nk_tooltip_begin(&context, width);
 	lua_pushnumber(L, open);
@@ -2582,21 +2582,21 @@ static int nk_love_tooltip_begin(lua_State *L)
 
 static int nk_love_tooltip_end(lua_State *L)
 {
-	nk_love_assert(lua_gettop(L) == 0, "nk.tooltip_end: wrong number of arguments");
+	nk_love_assert(lua_gettop(L) == 0, "nk.tooltipEnd: wrong number of arguments");
 	nk_tooltip_end(&context);
 	return 0;
 }
 
 static int nk_love_menubar_begin(lua_State *L)
 {
-	nk_love_assert(lua_gettop(L) == 0, "nk.menubar_begin: wrong number of arguments");
+	nk_love_assert(lua_gettop(L) == 0, "nk.menubarBegin: wrong number of arguments");
 	nk_menubar_begin(&context);
 	return 0;
 }
 
 static int nk_love_menubar_end(lua_State *L)
 {
-	nk_love_assert(lua_gettop(L) == 0, "nk.menubar_end: wrong number of arguments");
+	nk_love_assert(lua_gettop(L) == 0, "nk.menubarEnd: wrong number of arguments");
 	nk_menubar_end(&context);
 	return 0;
 }
@@ -2604,8 +2604,8 @@ static int nk_love_menubar_end(lua_State *L)
 static int nk_love_menu_begin(lua_State *L)
 {
 	int argc = lua_gettop(L);
-	nk_love_assert(argc == 4 || argc == 5, "nk.menu_begin: wrong number of arguments");
-	nk_love_assert(lua_type(L, 1) == LUA_TSTRING, "nk.menu_begin: arg 1 should be a string");
+	nk_love_assert(argc == 4 || argc == 5, "nk.menuBegin: wrong number of arguments");
+	nk_love_assert(lua_type(L, 1) == LUA_TSTRING, "nk.menuBegin: arg 1 should be a string");
 	const char *text = lua_tostring(L, 1);
 	enum nk_symbol_type symbol = NK_SYMBOL_NONE;
 	struct nk_image image;
@@ -2613,25 +2613,25 @@ static int nk_love_menu_begin(lua_State *L)
 	if (lua_type(L, 2) == LUA_TSTRING) {
 		const char *symbol_string = lua_tostring(L, 2);
 		if (!nk_love_parse_symbol(symbol_string, &symbol)) {
-			nk_love_error("nk.menu_begin: arg 2 should be a symbol type or image");
+			nk_love_error("nk.menuBegin: arg 2 should be a symbol type or image");
 		}
 	} else if (lua_type(L, 2) != LUA_TNIL) {
-		nk_love_assert_type(2, "Image", "nk.menu_begin: arg 2 should be a symbol type or image");
+		nk_love_assert_type(2, "Image", "nk.menuBegin: arg 2 should be a symbol type or image");
 		lua_pushvalue(L, 2);
 		nk_love_toimage(&image);
 		use_image = 1;
 	}
 	struct nk_vec2 size;
-	nk_love_assert(lua_type(L, 3) == LUA_TNUMBER, "nk.menu_begin: arg 3 should be a number");
+	nk_love_assert(lua_type(L, 3) == LUA_TNUMBER, "nk.menuBegin: arg 3 should be a number");
 	size.x = lua_tonumber(L, 3);
-	nk_love_assert(lua_type(L, 4) == LUA_TNUMBER, "nk.menu_begin: arg 4 should be a number");
+	nk_love_assert(lua_type(L, 4) == LUA_TNUMBER, "nk.menuBegin: arg 4 should be a number");
 	size.y = lua_tonumber(L, 4);
 	nk_flags align = NK_TEXT_LEFT;
 	if (argc == 5 && lua_type(L, 5) != LUA_TNIL) {
-		nk_love_assert(lua_type(L, 5) == LUA_TSTRING, "nk.menu_begin: arg 5 should be a string");
+		nk_love_assert(lua_type(L, 5) == LUA_TSTRING, "nk.menuBegin: arg 5 should be a string");
 		const char *align_string = lua_tostring(L, 5);
 		if (!nk_love_parse_align(align_string, &align)) {
-			nk_love_error("nk.menu_begin: arg 5 should be an alignment");
+			nk_love_error("nk.menuBegin: arg 5 should be an alignment");
 		}
 	}
 	int open;
@@ -2649,8 +2649,8 @@ static int nk_love_menu_begin(lua_State *L)
 static int nk_love_menu_item(lua_State *L)
 {
 	int argc = lua_gettop(L);
-	nk_love_assert(argc >= 1 && argc <= 3, "nk.menu_item: wrong number of arguments");
-	nk_love_assert(lua_type(L, 1) == LUA_TSTRING, "nk.menu_item: arg 1 should be a string");
+	nk_love_assert(argc >= 1 && argc <= 3, "nk.menuItem: wrong number of arguments");
+	nk_love_assert(lua_type(L, 1) == LUA_TSTRING, "nk.menuItem: arg 1 should be a string");
 	const char *text = lua_tostring(L, 1);
 	enum nk_symbol_type symbol = NK_SYMBOL_NONE;
 	struct nk_image image;
@@ -2659,10 +2659,10 @@ static int nk_love_menu_item(lua_State *L)
 		if (lua_type(L, 2) == LUA_TSTRING) {
 			const char *symbol_string = lua_tostring(L, 2);
 			if (!nk_love_parse_symbol(symbol_string, &symbol)) {
-				nk_love_error("nk.menu_item: arg 2 should be a symbol type or image");
+				nk_love_error("nk.menuItem: arg 2 should be a symbol type or image");
 			}
 		} else {
-			nk_love_assert_type(2, "Image", "nk.menu_item: arg 2 should be a symbol type or image");
+			nk_love_assert_type(2, "Image", "nk.menuItem: arg 2 should be a symbol type or image");
 			lua_pushvalue(L, 2);
 			nk_love_toimage(&image);
 			use_image = 1;
@@ -2670,10 +2670,10 @@ static int nk_love_menu_item(lua_State *L)
 	}
 	nk_flags align = NK_TEXT_LEFT;
 	if (argc >= 3 && lua_type(L, 3) != LUA_TNIL) {
-		nk_love_assert(lua_type(L, 3) == LUA_TSTRING, "nk.menu_item: arg 3 should be a string");
+		nk_love_assert(lua_type(L, 3) == LUA_TSTRING, "nk.menuItem: arg 3 should be a string");
 		const char *align_string = lua_tostring(L, 3);
 		if (!nk_love_parse_align(align_string, &align)) {
-			nk_love_error("nk.menu_item: arg 3 should be an alignment");
+			nk_love_error("nk.menuItem: arg 3 should be an alignment");
 		}
 	}
 	int activated;
@@ -2690,35 +2690,35 @@ static int nk_love_menu_item(lua_State *L)
 
 static int nk_love_menu_close(lua_State *L)
 {
-	nk_love_assert(lua_gettop(L) == 0, "nk.menu_close: wrong number of arguments");
+	nk_love_assert(lua_gettop(L) == 0, "nk.menuClose: wrong number of arguments");
 	nk_menu_close(&context);
 	return 0;
 }
 
 static int nk_love_menu_end(lua_State *L)
 {
-	nk_love_assert(lua_gettop(L) == 0, "nk.menu_end: wrong number of arguments");
+	nk_love_assert(lua_gettop(L) == 0, "nk.menuEnd: wrong number of arguments");
 	nk_menu_end(&context);
 	return 0;
 }
 
 static int nk_love_style_default(lua_State *L)
 {
-	nk_love_assert(lua_gettop(L) == 0, "nk.style_default: wrong number of arguments");
+	nk_love_assert(lua_gettop(L) == 0, "nk.styleDefault: wrong number of arguments");
 	nk_style_default(&context);
 	return 0;
 }
 
 #define NK_LOVE_LOAD_COLOR(type) \
 	lua_getfield(L, -1, (type)); \
-	nk_love_assert_color(-1, "nk.style_load_colors: table missing color value for '" type "'"); \
+	nk_love_assert_color(-1, "nk.styleLoadColors: table missing color value for '" type "'"); \
 	colors[index++] = nk_love_color_parse(lua_tostring(L, -1)); \
 	lua_pop(L, 1);
 
 static int nk_love_style_load_colors(lua_State *L)
 {
-	nk_love_assert(lua_gettop(L) == 1, "nk.style_load_colors: wrong number of arguments");
-	nk_love_assert(lua_type(L, 1) == LUA_TTABLE, "nk.style_load_colors: arg 1 should be a table");
+	nk_love_assert(lua_gettop(L) == 1, "nk.styleLoadColors: wrong number of arguments");
+	nk_love_assert(lua_type(L, 1) == LUA_TTABLE, "nk.styleLoadColors: arg 1 should be a table");
 	struct nk_color colors[NK_COLOR_COUNT];
 	int index = 0;
 	NK_LOVE_LOAD_COLOR("text");
@@ -2755,8 +2755,8 @@ static int nk_love_style_load_colors(lua_State *L)
 
 static int nk_love_style_set_font(lua_State *L)
 {
-	nk_love_assert(lua_gettop(L) == 1, "nk.style_set_font: wrong number of arguments");
-	nk_love_assert_type(1, "Font", "nk.style_set_font: arg 1 should be a font");
+	nk_love_assert(lua_gettop(L) == 1, "nk.styleSetFont: wrong number of arguments");
+	nk_love_assert_type(1, "Font", "nk.styleSetFont: arg 1 should be a font");
 	nk_love_tofont(&fonts[font_count]);
 	nk_style_set_font(&context, &fonts[font_count++]);
 	return 0;
@@ -2764,7 +2764,7 @@ static int nk_love_style_set_font(lua_State *L)
 
 static int nk_love_style_push_color(struct nk_color *field)
 {
-	nk_love_assert_color(-1, "nk.style_push: color fields must be color strings");
+	nk_love_assert_color(-1, "nk.stylePush: color fields must be color strings");
 	const char *color_string = lua_tostring(L, -1);
 	struct nk_color color = nk_love_color_parse(color_string);
 	int success = nk_style_push_color(&context, field, color);
@@ -2778,11 +2778,11 @@ static int nk_love_style_push_color(struct nk_color *field)
 
 static int nk_love_style_push_vec2(struct nk_vec2 *field)
 {
-	nk_love_assert(lua_type(L, -1) == LUA_TTABLE, "nk.style_push: vec2 fields must have x and y components");
+	nk_love_assert(lua_type(L, -1) == LUA_TTABLE, "nk.stylePush: vec2 fields must have x and y components");
 	lua_getfield(L, -1, "x");
-	nk_love_assert(lua_type(L, -1) == LUA_TNUMBER, "nk.style_push: vec2 fields must have x and y components");
+	nk_love_assert(lua_type(L, -1) == LUA_TNUMBER, "nk.stylePush: vec2 fields must have x and y components");
 	lua_getfield(L, -2, "y");
-	nk_love_assert(lua_type(L, -1) == LUA_TNUMBER, "nk.style_push: vec2 fields must have x and y components");
+	nk_love_assert(lua_type(L, -1) == LUA_TNUMBER, "nk.stylePush: vec2 fields must have x and y components");
 	struct nk_vec2 vec2;
 	vec2.x = lua_tonumber(L, -2);
 	vec2.y = lua_tonumber(L, -1);
@@ -2800,12 +2800,12 @@ static int nk_love_style_push_item(struct nk_style_item *field)
 {
 	struct nk_style_item item;
 	if (lua_type(L, -1) == LUA_TSTRING) {
-		nk_love_assert_color(-1, "nk.style_push: item fields must be color strings or images");
+		nk_love_assert_color(-1, "nk.stylePush: item fields must be color strings or images");
 		const char *color_string = lua_tostring(L, -1);
 		item.type = NK_STYLE_ITEM_COLOR;
 		item.data.color = nk_love_color_parse(color_string);
 	} else {
-		nk_love_assert_type(-1, "Image", "nk.style_push: item fields must be color strings or images");
+		nk_love_assert_type(-1, "Image", "nk.stylePush: item fields must be color strings or images");
 		lua_pushvalue(L, -1);
 		item.type = NK_STYLE_ITEM_IMAGE;
 		nk_love_toimage(&item.data.image);
@@ -2821,11 +2821,11 @@ static int nk_love_style_push_item(struct nk_style_item *field)
 
 static int nk_love_style_push_align(nk_flags *field)
 {
-	nk_love_assert(lua_type(L, -1) == LUA_TSTRING, "nk.style_push: alignment fields must be alignments");
+	nk_love_assert(lua_type(L, -1) == LUA_TSTRING, "nk.stylePush: alignment fields must be alignments");
 	const char *align_string = lua_tostring(L, -1);
 	nk_flags align;
 	if (!nk_love_parse_align(align_string, &align)) {
-		nk_love_error("nk.style_push: alignment fields must be alignments");
+		nk_love_error("nk.stylePush: alignment fields must be alignments");
 	}
 	int success = nk_style_push_flags(&context, field, align);
 	if (success) {
@@ -2837,7 +2837,7 @@ static int nk_love_style_push_align(nk_flags *field)
 }
 
 static int nk_love_style_push_float(float *field) {
-	nk_love_assert(lua_type(L, -1) == LUA_TNUMBER, "nk.style_push: float fields must be numbers");
+	nk_love_assert(lua_type(L, -1) == LUA_TNUMBER, "nk.stylePush: float fields must be numbers");
 	float f = lua_tonumber(L, -1);
 	int success = nk_style_push_float(&context, field, f);
 	if (success) {
@@ -2850,7 +2850,7 @@ static int nk_love_style_push_float(float *field) {
 
 static int nk_love_style_push_font(const struct nk_user_font **field)
 {
-	nk_love_assert_type(-1, "Font", "nk.style_push: font fields must be fonts");
+	nk_love_assert_type(-1, "Font", "nk.stylePush: font fields must be fonts");
 	lua_pushvalue(L, -1);
 	nk_love_tofont(&fonts[font_count]);
 	int success = nk_style_push_font(&context, &fonts[font_count++]);
@@ -2863,7 +2863,7 @@ static int nk_love_style_push_font(const struct nk_user_font **field)
 }
 
 #define NK_LOVE_STYLE_PUSH(name, type, field) \
-	nk_love_assert(lua_type(L, -1) == LUA_TTABLE, "nk.style_push: " name " field must be a table"); \
+	nk_love_assert(lua_type(L, -1) == LUA_TTABLE, "nk.stylePush: " name " field must be a table"); \
 	lua_getfield(L, -1, name); \
 	if (lua_type(L, -1) != LUA_TNIL) \
 		nk_love_style_push_##type(field); \
@@ -3142,8 +3142,8 @@ static void nk_love_style_push_window(struct nk_style_window *style)
 
 static int nk_love_style_push(lua_State *L)
 {
-	nk_love_assert(lua_gettop(L) == 1, "nk.style_push: wrong number of arguments");
-	nk_love_assert(lua_type(L, 1) == LUA_TTABLE, "nk.style_push: arg 1 should be a table");
+	nk_love_assert(lua_gettop(L) == 1, "nk.stylePush: wrong number of arguments");
+	nk_love_assert(lua_type(L, 1) == LUA_TTABLE, "nk.stylePush: arg 1 should be a table");
 	lua_newtable(L);
 	lua_insert(L, 1);
 	NK_LOVE_STYLE_PUSH("font", font, &context.style.font);
@@ -3175,7 +3175,7 @@ static int nk_love_style_push(lua_State *L)
 
 static int nk_love_style_pop(lua_State *L)
 {
-	nk_love_assert(lua_gettop(L) == 0, "nk.style_pop: wrong number of arguments");
+	nk_love_assert(lua_gettop(L) == 0, "nk.stylePop: wrong number of arguments");
 	lua_getfield(L, LUA_REGISTRYINDEX, "nuklear");
 	lua_getfield(L, -1, "stack");
 	size_t stack_size = lua_objlen(L, -1);
@@ -3209,7 +3209,7 @@ static int nk_love_style_pop(lua_State *L)
 
 static int nk_love_widget_bounds(lua_State *L)
 {
-	nk_love_assert(lua_gettop(L) == 0, "nk.widget_bounds: wrong number of arguments");
+	nk_love_assert(lua_gettop(L) == 0, "nk.widgetBounds: wrong number of arguments");
 	struct nk_rect bounds = nk_widget_bounds(&context);
 	lua_pushnumber(L, bounds.x);
 	lua_pushnumber(L, bounds.y);
@@ -3220,7 +3220,7 @@ static int nk_love_widget_bounds(lua_State *L)
 
 static int nk_love_widget_position(lua_State *L)
 {
-	nk_love_assert(lua_gettop(L) == 0, "nk.widget_position: wrong number of arguments");
+	nk_love_assert(lua_gettop(L) == 0, "nk.widgetPosition: wrong number of arguments");
 	struct nk_vec2 pos = nk_widget_position(&context);
 	lua_pushnumber(L, pos.x);
 	lua_pushnumber(L, pos.y);
@@ -3229,7 +3229,7 @@ static int nk_love_widget_position(lua_State *L)
 
 static int nk_love_widget_size(lua_State *L)
 {
-	nk_love_assert(lua_gettop(L) == 0, "nk.widget_size: wrong number of arguments");
+	nk_love_assert(lua_gettop(L) == 0, "nk.widgetSize: wrong number of arguments");
 	struct nk_vec2 pos = nk_widget_size(&context);
 	lua_pushnumber(L, pos.x);
 	lua_pushnumber(L, pos.y);
@@ -3238,7 +3238,7 @@ static int nk_love_widget_size(lua_State *L)
 
 static int nk_love_widget_width(lua_State *L)
 {
-	nk_love_assert(lua_gettop(L) == 0, "nk.widget_width: wrong number of arguments");
+	nk_love_assert(lua_gettop(L) == 0, "nk.widgetWidth: wrong number of arguments");
 	float width = nk_widget_width(&context);
 	lua_pushnumber(L, width);
 	return 1;
@@ -3246,7 +3246,7 @@ static int nk_love_widget_width(lua_State *L)
 
 static int nk_love_widget_height(lua_State *L)
 {
-	nk_love_assert(lua_gettop(L) == 0, "nk.widget_height: wrong number of arguments");
+	nk_love_assert(lua_gettop(L) == 0, "nk.widgetHeight: wrong number of arguments");
 	float height = nk_widget_height(&context);
 	lua_pushnumber(L, height);
 	return 1;
@@ -3254,7 +3254,7 @@ static int nk_love_widget_height(lua_State *L)
 
 static int nk_love_widget_is_hovered(lua_State *L)
 {
-	nk_love_assert(lua_gettop(L) == 0, "nk.widget_is_hovered: wrong number of arguments");
+	nk_love_assert(lua_gettop(L) == 0, "nk.widgetIsHovered: wrong number of arguments");
 	int hovered = nk_widget_is_hovered(&context);
 	lua_pushboolean(L, hovered);
 	return 1;
@@ -3263,13 +3263,13 @@ static int nk_love_widget_is_hovered(lua_State *L)
 static int nk_love_widget_is_mouse_clicked(lua_State *L)
 {
 	int argc = lua_gettop(L);
-	nk_love_assert(argc == 0 || argc == 1, "nk.widget_is_mouse_clicked: wrong number of arguments");
+	nk_love_assert(argc == 0 || argc == 1, "nk.widgetIsMouseClicked: wrong number of arguments");
 	enum nk_buttons button = NK_BUTTON_LEFT;
 	if (argc == 1 && lua_type(L, 1) != LUA_TNIL) {
-		nk_love_assert(lua_type(L, 1) == LUA_TSTRING, "nk.widget_is_mouse_clicked: arg 1 should be a string");
+		nk_love_assert(lua_type(L, 1) == LUA_TSTRING, "nk.widgetIsMouseClicked: arg 1 should be a string");
 		const char *button_string = lua_tostring(L, 1);
 		if (!nk_love_parse_button(button_string, &button)) {
-			nk_love_error("nk.widget_is_mouse_clicked: arg 1 should be a button");
+			nk_love_error("nk.widgetIsMouseClicked: arg 1 should be a button");
 		}
 	}
 	int clicked = nk_widget_is_mouse_clicked(&context, button);
@@ -3280,18 +3280,18 @@ static int nk_love_widget_is_mouse_clicked(lua_State *L)
 static int nk_love_widget_has_mouse_click(lua_State *L)
 {
 	int argc = lua_gettop(L);
-	nk_love_assert(argc >= 0 && argc <= 2, "nk.widget_has_mouse_click: wrong number of arguments");
+	nk_love_assert(argc >= 0 && argc <= 2, "nk.widgetHasMouseClick: wrong number of arguments");
 	enum nk_buttons button = NK_BUTTON_LEFT;
 	if (argc >= 1 && lua_type(L, 1) != LUA_TNIL) {
-		nk_love_assert(lua_type(L, 1) == LUA_TSTRING, "nk.widget_has_mouse_click: arg 1 should be a string");
+		nk_love_assert(lua_type(L, 1) == LUA_TSTRING, "nk.widgetHasMouseClick: arg 1 should be a string");
 		const char *button_string = lua_tostring(L, 1);
 		if (!nk_love_parse_button(button_string, &button)) {
-			nk_love_error("nk.widget_has_mouse_click: arg 1 should be a button");
+			nk_love_error("nk.widgetHasMouseClick: arg 1 should be a button");
 		}
 	}
 	int down = 1;
 	if (argc >= 2 && lua_type(L, 2) != LUA_TNIL) {
-		nk_love_assert(lua_type(L, 2) == LUA_TBOOLEAN, "nk.widget_has_mouse_click: arg 2 should be a boolean");
+		nk_love_assert(lua_type(L, 2) == LUA_TBOOLEAN, "nk.widgetHasMouseClick: arg 2 should be a boolean");
 		down = lua_toboolean(L, 2);
 	}
 	int has_click = nk_widget_has_mouse_click_down(&context, button, down);
@@ -3308,229 +3308,212 @@ static int nk_love_spacing(lua_State *L)
 	return 0;
 }
 
+#define NK_LOVE_REGISTER(name, func) \
+  lua_pushcfunction(L, func); \
+  lua_setfield(L, -2, name)
+
 LUALIB_API int luaopen_nuklear(lua_State *L)
 {
 	lua_newtable(L);
-	
-	lua_pushcfunction(L, nk_love_init);
-	lua_setfield(L, -2, "init");
-	lua_pushcfunction(L, nk_love_shutdown);
-	lua_setfield(L, -2, "shutdown");
 
-	lua_pushcfunction(L, nk_love_keypressed);
-	lua_setfield(L, -2, "keypressed");
-	lua_pushcfunction(L, nk_love_keyreleased);
-	lua_setfield(L, -2, "keyreleased");
-	lua_pushcfunction(L, nk_love_mousepressed);
-	lua_setfield(L, -2, "mousepressed");
-	lua_pushcfunction(L, nk_love_mousereleased);
-	lua_setfield(L, -2, "mousereleased");
-	lua_pushcfunction(L, nk_love_mousemoved);
-	lua_setfield(L, -2, "mousemoved");
-	lua_pushcfunction(L, nk_love_textinput);
-	lua_setfield(L, -2, "textinput");
-	lua_pushcfunction(L, nk_love_wheelmoved);
-	lua_setfield(L, -2, "wheelmoved");
+  NK_LOVE_REGISTER("init", nk_love_init);
+  NK_LOVE_REGISTER("shutdown", nk_love_shutdown);
 
-	lua_pushcfunction(L, nk_love_draw);
-	lua_setfield(L, -2, "draw");
+  NK_LOVE_REGISTER("keypressed", nk_love_keypressed);
+  NK_LOVE_REGISTER("keyreleased", nk_love_keyreleased);
+  NK_LOVE_REGISTER("mousepressed", nk_love_mousepressed);
+  NK_LOVE_REGISTER("mousereleased", nk_love_mousereleased);
+  NK_LOVE_REGISTER("mousemoved", nk_love_mousemoved);
+  NK_LOVE_REGISTER("textinput", nk_love_textinput);
+  NK_LOVE_REGISTER("wheelmoved", nk_love_wheelmoved);
 
-	lua_pushcfunction(L, nk_love_frame_begin);
-	lua_setfield(L, -2, "frame_begin");
-	lua_pushcfunction(L, nk_love_frame_end);
-	lua_setfield(L, -2, "frame_end");
+  NK_LOVE_REGISTER("draw", nk_love_draw);
 
-	lua_pushcfunction(L, nk_love_window_begin);
-	lua_setfield(L, -2, "window_begin");
-	lua_pushcfunction(L, nk_love_window_end);
-	lua_setfield(L, -2, "window_end");
-	lua_pushcfunction(L, nk_love_window_get_bounds);
-	lua_setfield(L, -2, "window_get_bounds");
-	lua_pushcfunction(L, nk_love_window_get_position);
-	lua_setfield(L, -2, "window_get_position");
-	lua_pushcfunction(L, nk_love_window_get_size);
-	lua_setfield(L, -2, "window_get_size");
-	lua_pushcfunction(L, nk_love_window_get_content_region);
-	lua_setfield(L, -2, "window_get_content_region");
-	lua_pushcfunction(L, nk_love_window_has_focus);
-	lua_setfield(L, -2, "window_has_focus");
-	lua_pushcfunction(L, nk_love_window_is_collapsed);
-	lua_setfield(L, -2, "window_is_collapsed");
-	lua_pushcfunction(L, nk_love_window_is_hidden);
-	lua_setfield(L, -2, "window_is_hidden");
-	lua_pushcfunction(L, nk_love_window_is_active);
-	lua_setfield(L, -2, "window_is_active");
-	lua_pushcfunction(L, nk_love_window_is_hovered);
-	lua_setfield(L, -2, "window_is_hovered");
-	lua_pushcfunction(L, nk_love_window_is_any_hovered);
-	lua_setfield(L, -2, "window_is_any_hovered");
-	lua_pushcfunction(L, nk_love_item_is_any_active);
-	lua_setfield(L, -2, "item_is_any_active");
-	lua_pushcfunction(L, nk_love_window_set_bounds);
-	lua_setfield(L, -2, "window_set_bounds");
-	lua_pushcfunction(L, nk_love_window_set_position);
-	lua_setfield(L, -2, "window_set_position");
-	lua_pushcfunction(L, nk_love_window_set_size);
-	lua_setfield(L, -2, "window_set_size");
-	lua_pushcfunction(L, nk_love_window_set_focus);
-	lua_setfield(L, -2, "window_set_focus");
-	lua_pushcfunction(L, nk_love_window_close);
-	lua_setfield(L, -2, "window_close");
-	lua_pushcfunction(L, nk_love_window_collapse);
-	lua_setfield(L, -2, "window_collapse");
-	lua_pushcfunction(L, nk_love_window_expand);
-	lua_setfield(L, -2, "window_expand");
-	lua_pushcfunction(L, nk_love_window_show);
-	lua_setfield(L, -2, "window_show");
-	lua_pushcfunction(L, nk_love_window_hide);
-	lua_setfield(L, -2, "window_hide");
-	
-	lua_pushcfunction(L, nk_love_layout_row);
-	lua_setfield(L, -2, "layout_row");
-	lua_pushcfunction(L, nk_love_layout_row_begin);
-	lua_setfield(L, -2, "layout_row_begin");
-	lua_pushcfunction(L, nk_love_layout_row_push);
-	lua_setfield(L, -2, "layout_row_push");
-	lua_pushcfunction(L, nk_love_layout_row_end);
-	lua_setfield(L, -2, "layout_row_end");
-	lua_pushcfunction(L, nk_love_layout_space_begin);
-	lua_setfield(L, -2, "layout_space_begin");
-	lua_pushcfunction(L, nk_love_layout_space_push);
-	lua_setfield(L, -2, "layout_space_push");
-	lua_pushcfunction(L, nk_love_layout_space_end);
-	lua_setfield(L, -2, "layout_space_end");
-	lua_pushcfunction(L, nk_love_layout_space_bounds);
-	lua_setfield(L, -2, "layout_space_bounds");
-	lua_pushcfunction(L, nk_love_layout_space_to_screen);
-	lua_setfield(L, -2, "layout_space_to_screen");
-	lua_pushcfunction(L, nk_love_layout_space_to_local);
-	lua_setfield(L, -2, "layout_space_to_local");
-	lua_pushcfunction(L, nk_love_layout_space_rect_to_screen);
-	lua_setfield(L, -2, "layout_space_rect_to_screen");
-	lua_pushcfunction(L, nk_love_layout_space_rect_to_local);
-	lua_setfield(L, -2, "layout_space_rect_to_local");
-	lua_pushcfunction(L, nk_love_layout_ratio_from_pixel);
-	lua_setfield(L, -2, "layout_ratio_from_pixel");
+  NK_LOVE_REGISTER("frame_begin", nk_love_frame_begin);
+  NK_LOVE_REGISTER("frameBegin", nk_love_frame_begin);
+  NK_LOVE_REGISTER("frame_end", nk_love_frame_end);
+  NK_LOVE_REGISTER("frameEnd", nk_love_frame_end);
 
-	lua_pushcfunction(L, nk_love_group_begin);
-	lua_setfield(L, -2, "group_begin");
-	lua_pushcfunction(L, nk_love_group_end);
-	lua_setfield(L, -2, "group_end");
+  NK_LOVE_REGISTER("window_begin", nk_love_window_begin);
+  NK_LOVE_REGISTER("windowBegin", nk_love_window_begin);
+  NK_LOVE_REGISTER("window_end", nk_love_window_end);
+  NK_LOVE_REGISTER("windowEnd", nk_love_window_end);
+  NK_LOVE_REGISTER("window_get_bounds", nk_love_window_get_bounds);
+  NK_LOVE_REGISTER("windowGetBounds", nk_love_window_get_bounds);
+  NK_LOVE_REGISTER("window_get_position", nk_love_window_get_position);
+  NK_LOVE_REGISTER("windowGetPosition", nk_love_window_get_position);
+  NK_LOVE_REGISTER("window_get_size", nk_love_window_get_size);
+  NK_LOVE_REGISTER("windowGetSize", nk_love_window_get_size);
+  NK_LOVE_REGISTER("window_get_content_region", nk_love_window_get_content_region);
+  NK_LOVE_REGISTER("windowGetContentRegion", nk_love_window_get_content_region);
+  NK_LOVE_REGISTER("window_has_focus", nk_love_window_has_focus);
+  NK_LOVE_REGISTER("windowHasFocus", nk_love_window_has_focus);
+  NK_LOVE_REGISTER("window_is_collapsed", nk_love_window_is_collapsed);
+  NK_LOVE_REGISTER("windowIsCollapsed", nk_love_window_is_collapsed);
+  NK_LOVE_REGISTER("window_is_hidden", nk_love_window_is_hidden);
+  NK_LOVE_REGISTER("windowIsHidden", nk_love_window_is_hidden);
+  NK_LOVE_REGISTER("window_is_active", nk_love_window_is_active);
+  NK_LOVE_REGISTER("windowIsActive", nk_love_window_is_active);
+  NK_LOVE_REGISTER("window_is_hovered", nk_love_window_is_hovered);
+  NK_LOVE_REGISTER("windowIsHovered", nk_love_window_is_hovered);
+  NK_LOVE_REGISTER("window_is_any_hovered", nk_love_window_is_any_hovered);
+  NK_LOVE_REGISTER("windowsIsAnyHovered", nk_love_window_is_any_hovered);
+  NK_LOVE_REGISTER("item_is_any_active", nk_love_item_is_any_active);
+  NK_LOVE_REGISTER("itemIsAnyActive", nk_love_item_is_any_active);
+  NK_LOVE_REGISTER("window_set_bounds", nk_love_window_set_bounds);
+  NK_LOVE_REGISTER("windowSetBounds", nk_love_window_set_bounds);
+  NK_LOVE_REGISTER("window_set_position", nk_love_window_set_position);
+  NK_LOVE_REGISTER("windowSetPosition", nk_love_window_set_position);
+  NK_LOVE_REGISTER("window_set_size", nk_love_window_set_size);
+  NK_LOVE_REGISTER("windowSetSize", nk_love_window_set_size);
+  NK_LOVE_REGISTER("window_set_focus", nk_love_window_set_focus);
+  NK_LOVE_REGISTER("windowSetFocus", nk_love_window_set_focus);
+  NK_LOVE_REGISTER("window_close", nk_love_window_close);
+  NK_LOVE_REGISTER("windowClose", nk_love_window_close);
+  NK_LOVE_REGISTER("window_collapse", nk_love_window_collapse);
+  NK_LOVE_REGISTER("windowCollapse", nk_love_window_collapse);
+  NK_LOVE_REGISTER("window_expand", nk_love_window_expand);
+  NK_LOVE_REGISTER("windowExpand", nk_love_window_expand);
+  NK_LOVE_REGISTER("window_show", nk_love_window_show);
+  NK_LOVE_REGISTER("windowShow", nk_love_window_show);
+  NK_LOVE_REGISTER("window_hide", nk_love_window_hide);
+  NK_LOVE_REGISTER("windowHide", nk_love_window_hide);
 
-	lua_pushcfunction(L, nk_love_tree_push);
-	lua_setfield(L, -2, "tree_push");
-	lua_pushcfunction(L, nk_love_tree_pop);
-	lua_setfield(L, -2, "tree_pop");
+  NK_LOVE_REGISTER("layout_row", nk_love_layout_row);
+  NK_LOVE_REGISTER("layoutRow", nk_love_layout_row);
+  NK_LOVE_REGISTER("layout_row_begin", nk_love_layout_row_begin);
+  NK_LOVE_REGISTER("layoutRowBegin", nk_love_layout_row_begin);
+  NK_LOVE_REGISTER("layout_row_push", nk_love_layout_row_push);
+  NK_LOVE_REGISTER("layoutRowPush", nk_love_layout_row_push);
+  NK_LOVE_REGISTER("layout_row_end", nk_love_layout_row_end);
+  NK_LOVE_REGISTER("layoutRowEnd", nk_love_layout_row_end);
+  NK_LOVE_REGISTER("layout_space_begin", nk_love_layout_space_begin);
+  NK_LOVE_REGISTER("layoutSpaceBegin", nk_love_layout_space_begin);
+  NK_LOVE_REGISTER("layout_space_push", nk_love_layout_space_push);
+  NK_LOVE_REGISTER("layoutSpacePush", nk_love_layout_space_push);
+  NK_LOVE_REGISTER("layout_space_end", nk_love_layout_space_end);
+  NK_LOVE_REGISTER("layoutSpaceEnd", nk_love_layout_space_end);
+  NK_LOVE_REGISTER("layout_space_bounds", nk_love_layout_space_bounds);
+  NK_LOVE_REGISTER("layoutSpaceBounds", nk_love_layout_space_bounds);
+  NK_LOVE_REGISTER("layout_space_to_screen", nk_love_layout_space_to_screen);
+  NK_LOVE_REGISTER("layoutSpaceToScreen", nk_love_layout_space_to_screen);
+  NK_LOVE_REGISTER("layout_space_to_local", nk_love_layout_space_to_local);
+  NK_LOVE_REGISTER("layoutSpaceToLocal", nk_love_layout_space_to_local);
+  NK_LOVE_REGISTER("layout_space_rect_to_screen", nk_love_layout_space_rect_to_screen);
+  NK_LOVE_REGISTER("layoutSpaceRectToScreen", nk_love_layout_space_rect_to_screen);
+  NK_LOVE_REGISTER("layout_space_rect_to_local", nk_love_layout_space_rect_to_local);
+  NK_LOVE_REGISTER("layoutSpaceRectToLocal", nk_love_layout_space_rect_to_local);
+  NK_LOVE_REGISTER("layout_ratio_from_pixel", nk_love_layout_ratio_from_pixel);
+  NK_LOVE_REGISTER("layoutRatioFromPixel", nk_love_layout_ratio_from_pixel);
 
-	lua_pushcfunction(L, nk_love_color_rgba);
-	lua_setfield(L, -2, "color_rgba");
-	lua_pushcfunction(L, nk_love_color_hsva);
-	lua_setfield(L, -2, "color_hsva");
-	lua_pushcfunction(L, nk_love_color_parse_rgba);
-	lua_setfield(L, -2, "color_parse_rgba");
-	lua_pushcfunction(L, nk_love_color_parse_hsva);
-	lua_setfield(L, -2, "color_parse_hsva");
+  NK_LOVE_REGISTER("group_begin", nk_love_group_begin);
+  NK_LOVE_REGISTER("groupBegin", nk_love_group_begin);
+  NK_LOVE_REGISTER("group_end", nk_love_group_end);
+  NK_LOVE_REGISTER("groupEnd", nk_love_group_end);
 
-	lua_pushcfunction(L, nk_love_label);
-	lua_setfield(L, -2, "label");
-	lua_pushcfunction(L, nk_love_image);
-	lua_setfield(L, -2, "image");
-	lua_pushcfunction(L, nk_love_button);
-	lua_setfield(L, -2, "button");
-	lua_pushcfunction(L, nk_love_button_set_behavior);
-	lua_setfield(L, -2, "button_set_behavior");
-	lua_pushcfunction(L, nk_love_button_push_behavior);
-	lua_setfield(L, -2, "button_push_behavior");
-	lua_pushcfunction(L, nk_love_button_pop_behavior);
-	lua_setfield(L, -2, "button_pop_behavior");
-	lua_pushcfunction(L, nk_love_checkbox);
-	lua_setfield(L, -2, "checkbox");
-	lua_pushcfunction(L, nk_love_radio);
-	lua_setfield(L, -2, "radio");
-	lua_pushcfunction(L, nk_love_selectable);
-	lua_setfield(L, -2, "selectable");
-	lua_pushcfunction(L, nk_love_slider);
-	lua_setfield(L, -2, "slider");
-	lua_pushcfunction(L, nk_love_progress);
-	lua_setfield(L, -2, "progress");
-	lua_pushcfunction(L, nk_love_color_picker);
-	lua_setfield(L, -2, "color_picker");
-	lua_pushcfunction(L, nk_love_property);
-	lua_setfield(L, -2, "property");
-	lua_pushcfunction(L, nk_love_edit);
-	lua_setfield(L, -2, "edit");
-	lua_pushcfunction(L, nk_love_popup_begin);
-	lua_setfield(L, -2, "popup_begin");
-	lua_pushcfunction(L, nk_love_popup_close);
-	lua_setfield(L, -2, "popup_close");
-	lua_pushcfunction(L, nk_love_popup_end);
-	lua_setfield(L, -2, "popup_end");
-	lua_pushcfunction(L, nk_love_combobox);
-	lua_setfield(L, -2, "combobox");
-	lua_pushcfunction(L, nk_love_combobox_begin);
-	lua_setfield(L, -2, "combobox_begin");
-	lua_pushcfunction(L, nk_love_combobox_item);
-	lua_setfield(L, -2, "combobox_item");
-	lua_pushcfunction(L, nk_love_combobox_close);
-	lua_setfield(L, -2, "combobox_close");
-	lua_pushcfunction(L, nk_love_combobox_end);
-	lua_setfield(L, -2, "combobox_end");
-	lua_pushcfunction(L, nk_love_contextual_begin);
-	lua_setfield(L, -2, "contextual_begin");
-	lua_pushcfunction(L, nk_love_contextual_item);
-	lua_setfield(L, -2, "contextual_item");
-	lua_pushcfunction(L, nk_love_contextual_close);
-	lua_setfield(L, -2, "contextual_close");
-	lua_pushcfunction(L, nk_love_contextual_end);
-	lua_setfield(L, -2, "contextual_end");
-	lua_pushcfunction(L, nk_love_tooltip);
-	lua_setfield(L, -2, "tooltip");
-	lua_pushcfunction(L, nk_love_tooltip_begin);
-	lua_setfield(L, -2, "tooltip_begin");
-	lua_pushcfunction(L, nk_love_tooltip_end);
-	lua_setfield(L, -2, "tooltip_end");
-	lua_pushcfunction(L, nk_love_menubar_begin);
-	lua_setfield(L, -2, "menubar_begin");
-	lua_pushcfunction(L, nk_love_menubar_end);
-	lua_setfield(L, -2, "menubar_end");
-	lua_pushcfunction(L, nk_love_menu_begin);
-	lua_setfield(L, -2, "menu_begin");
-	lua_pushcfunction(L, nk_love_menu_item);
-	lua_setfield(L, -2, "menu_item");
-	lua_pushcfunction(L, nk_love_menu_close);
-	lua_setfield(L, -2, "menu_close");
-	lua_pushcfunction(L, nk_love_menu_end);
-	lua_setfield(L, -2, "menu_end");
+  NK_LOVE_REGISTER("tree_push", nk_love_tree_push);
+  NK_LOVE_REGISTER("treePush", nk_love_tree_push);
+  NK_LOVE_REGISTER("tree_pop", nk_love_tree_pop);
+  NK_LOVE_REGISTER("treePop", nk_love_tree_pop);
 
-	lua_pushcfunction(L, nk_love_style_default);
-	lua_setfield(L, -2, "style_default");
-	lua_pushcfunction(L, nk_love_style_load_colors);
-	lua_setfield(L, -2, "style_load_colors");
-	lua_pushcfunction(L, nk_love_style_set_font);
-	lua_setfield(L, -2, "style_set_font");
-	lua_pushcfunction(L, nk_love_style_push);
-	lua_setfield(L, -2, "style_push");
-	lua_pushcfunction(L, nk_love_style_pop);
-	lua_setfield(L, -2, "style_pop");
+  NK_LOVE_REGISTER("color_rgba", nk_love_color_rgba);
+  NK_LOVE_REGISTER("colorRGBA", nk_love_color_rgba);
+  NK_LOVE_REGISTER("color_hsva", nk_love_color_hsva);
+  NK_LOVE_REGISTER("colorHSVA", nk_love_color_hsva);
+  NK_LOVE_REGISTER("color_parse_rgba", nk_love_color_parse_rgba);
+  NK_LOVE_REGISTER("colorParseRGBA", nk_love_color_parse_rgba);
+  NK_LOVE_REGISTER("color_parse_hsva", nk_love_color_parse_hsva);
+  NK_LOVE_REGISTER("colorParseHSVA", nk_love_color_parse_hsva);
 
-	lua_pushcfunction(L, nk_love_widget_bounds);
-	lua_setfield(L, -2, "widget_bounds");
-	lua_pushcfunction(L, nk_love_widget_position);
-	lua_setfield(L, -2, "widget_position");
-	lua_pushcfunction(L, nk_love_widget_size);
-	lua_setfield(L, -2, "widget_size");
-	lua_pushcfunction(L, nk_love_widget_width);
-	lua_setfield(L, -2, "widget_width");
-	lua_pushcfunction(L, nk_love_widget_height);
-	lua_setfield(L, -2, "widget_height");
-	lua_pushcfunction(L, nk_love_widget_is_hovered);
-	lua_setfield(L, -2, "widget_is_hovered");
-	lua_pushcfunction(L, nk_love_widget_is_mouse_clicked);
-	lua_setfield(L, -2, "widget_is_mouse_clicked");
-	lua_pushcfunction(L, nk_love_widget_has_mouse_click);
-	lua_setfield(L, -2, "widget_has_mouse_click");
-	lua_pushcfunction(L, nk_love_spacing);
-	lua_setfield(L, -2, "spacing");
+  NK_LOVE_REGISTER("label", nk_love_label);
+  NK_LOVE_REGISTER("image", nk_love_image);
+  NK_LOVE_REGISTER("button", nk_love_button);
+  NK_LOVE_REGISTER("button_set_behavior", nk_love_button_set_behavior);
+  NK_LOVE_REGISTER("buttonSetBehavior", nk_love_button_set_behavior);
+  NK_LOVE_REGISTER("button_push_behavior", nk_love_button_push_behavior);
+  NK_LOVE_REGISTER("buttonPushBehavior", nk_love_button_push_behavior);
+  NK_LOVE_REGISTER("button_pop_behavior", nk_love_button_pop_behavior);
+  NK_LOVE_REGISTER("buttonPopBehavior", nk_love_button_pop_behavior);
+  NK_LOVE_REGISTER("checkbox", nk_love_checkbox);
+  NK_LOVE_REGISTER("radio", nk_love_radio);
+  NK_LOVE_REGISTER("selectable", nk_love_selectable);
+  NK_LOVE_REGISTER("slider", nk_love_slider);
+  NK_LOVE_REGISTER("progress", nk_love_progress);
+  NK_LOVE_REGISTER("color_picker", nk_love_color_picker);
+  NK_LOVE_REGISTER("colorPicker", nk_love_color_picker);
+  NK_LOVE_REGISTER("property", nk_love_property);
+  NK_LOVE_REGISTER("edit", nk_love_edit);
+  NK_LOVE_REGISTER("popup_begin", nk_love_popup_begin);
+  NK_LOVE_REGISTER("popupBegin", nk_love_popup_begin);
+  NK_LOVE_REGISTER("popup_close", nk_love_popup_close);
+  NK_LOVE_REGISTER("popupClose", nk_love_popup_close);
+  NK_LOVE_REGISTER("popup_end", nk_love_popup_end);
+  NK_LOVE_REGISTER("popupEnd", nk_love_popup_end);
+  NK_LOVE_REGISTER("combobox", nk_love_combobox);
+  NK_LOVE_REGISTER("combobox_begin", nk_love_combobox_begin);
+  NK_LOVE_REGISTER("comboboxBegin", nk_love_combobox_begin);
+  NK_LOVE_REGISTER("combobox_item", nk_love_combobox_item);
+  NK_LOVE_REGISTER("comboboxItem", nk_love_combobox_item);
+  NK_LOVE_REGISTER("combobox_close", nk_love_combobox_close);
+  NK_LOVE_REGISTER("comboboxClose", nk_love_combobox_close);
+  NK_LOVE_REGISTER("combobox_end", nk_love_combobox_end);
+  NK_LOVE_REGISTER("comboboxEnd", nk_love_combobox_end);
+  NK_LOVE_REGISTER("contextual_begin", nk_love_contextual_begin);
+  NK_LOVE_REGISTER("contextualBegin", nk_love_contextual_begin);
+  NK_LOVE_REGISTER("contextual_item", nk_love_contextual_item);
+  NK_LOVE_REGISTER("contextualItem", nk_love_contextual_item);
+  NK_LOVE_REGISTER("contextual_close", nk_love_contextual_close);
+  NK_LOVE_REGISTER("contextualClose", nk_love_contextual_close);
+  NK_LOVE_REGISTER("contextual_end", nk_love_contextual_end);
+  NK_LOVE_REGISTER("contextualEnd", nk_love_contextual_end);
+  NK_LOVE_REGISTER("tooltip", nk_love_tooltip);
+  NK_LOVE_REGISTER("tooltip_begin", nk_love_tooltip_begin);
+  NK_LOVE_REGISTER("tooltipBegin", nk_love_tooltip_begin);
+  NK_LOVE_REGISTER("tooltip_end", nk_love_tooltip_end);
+  NK_LOVE_REGISTER("tooltipEnd", nk_love_tooltip_end);
+  NK_LOVE_REGISTER("menubar_begin", nk_love_menubar_begin);
+  NK_LOVE_REGISTER("menubarBegin", nk_love_menubar_begin);
+  NK_LOVE_REGISTER("menubar_end", nk_love_menubar_end);
+  NK_LOVE_REGISTER("menubarEnd", nk_love_menubar_end);
+  NK_LOVE_REGISTER("menu_begin", nk_love_menu_begin);
+  NK_LOVE_REGISTER("menuBegin", nk_love_menu_begin);
+  NK_LOVE_REGISTER("menu_item", nk_love_menu_item);
+  NK_LOVE_REGISTER("menuItem", nk_love_menu_item);
+  NK_LOVE_REGISTER("menu_close", nk_love_menu_close);
+  NK_LOVE_REGISTER("menuClose", nk_love_menu_close);
+  NK_LOVE_REGISTER("menu_end", nk_love_menu_end);
+  NK_LOVE_REGISTER("menuEnd", nk_love_menu_end);
 
-    return 1;
+  NK_LOVE_REGISTER("style_default", nk_love_style_default);
+  NK_LOVE_REGISTER("styleDefault", nk_love_style_default);
+  NK_LOVE_REGISTER("style_load_colors", nk_love_style_load_colors);
+  NK_LOVE_REGISTER("styleLoadColors", nk_love_style_load_colors);
+  NK_LOVE_REGISTER("style_set_font", nk_love_style_set_font);
+  NK_LOVE_REGISTER("styleSetFont", nk_love_style_set_font);
+  NK_LOVE_REGISTER("style_push", nk_love_style_push);
+  NK_LOVE_REGISTER("stylePush", nk_love_style_push);
+  NK_LOVE_REGISTER("style_pop", nk_love_style_pop);
+  NK_LOVE_REGISTER("stylePop", nk_love_style_pop);
+
+  NK_LOVE_REGISTER("widget_bounds", nk_love_widget_bounds);
+  NK_LOVE_REGISTER("widgetBounds", nk_love_widget_bounds);
+  NK_LOVE_REGISTER("widget_position", nk_love_widget_position);
+  NK_LOVE_REGISTER("widgetPosition", nk_love_widget_position);
+  NK_LOVE_REGISTER("widget_size", nk_love_widget_size);
+  NK_LOVE_REGISTER("widgetSize", nk_love_widget_size);
+  NK_LOVE_REGISTER("widget_width", nk_love_widget_width);
+  NK_LOVE_REGISTER("widgetWidth", nk_love_widget_width);
+  NK_LOVE_REGISTER("widget_height", nk_love_widget_height);
+  NK_LOVE_REGISTER("widgetHeight", nk_love_widget_height);
+  NK_LOVE_REGISTER("widget_is_hovered", nk_love_widget_is_hovered);
+  NK_LOVE_REGISTER("widgetIsHovered", nk_love_widget_is_hovered);
+  NK_LOVE_REGISTER("widget_is_mouse_clicked", nk_love_widget_is_mouse_clicked);
+  NK_LOVE_REGISTER("widgetIsMouseClicked", nk_love_widget_is_mouse_clicked);
+  NK_LOVE_REGISTER("widget_has_mouse_click", nk_love_widget_has_mouse_click);
+  NK_LOVE_REGISTER("widgetHasMouseClick", nk_love_widget_has_mouse_click);
+  NK_LOVE_REGISTER("spacing", nk_love_spacing);
+
+  return 1;
 }
+
+#undef NK_LOVE_REGISTER

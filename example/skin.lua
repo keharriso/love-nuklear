@@ -1,8 +1,8 @@
 local nk = require 'nuklear'
 
-local window_header = love.graphics.newImage 'skin/window_header.png'
-local checkbox_skin = love.graphics.newImage 'skin/checkbox_false.png'
-local checkbox_check = love.graphics.newImage 'skin/checkbox_true.png'
+local windowHeader = love.graphics.newImage 'skin/window_header.png'
+local checkboxSkin = love.graphics.newImage 'skin/checkbox_false.png'
+local checkboxCheck = love.graphics.newImage 'skin/checkbox_true.png'
 
 local style = {
 	['text'] = {
@@ -18,11 +18,11 @@ local style = {
 		['text active'] = '#ffffff'
 	},
 	['checkbox'] = {
-		['normal'] = checkbox_skin,
-		['hover'] = checkbox_skin,
-		['active'] = checkbox_skin,
-		['cursor normal'] = checkbox_check,
-		['cursor hover'] = checkbox_check,
+		['normal'] = checkboxSkin,
+		['hover'] = checkboxSkin,
+		['active'] = checkboxSkin,
+		['cursor normal'] = checkboxCheck,
+		['cursor hover'] = checkboxCheck,
 		['text normal'] = '#000000',
 		['text hover'] = '#000000',
 		['text active'] = '#000000',
@@ -30,9 +30,9 @@ local style = {
 	},
 	['window'] = {
 		['header'] = {
-			['normal'] = window_header,
-			['hover'] = window_header,
-			['active'] = window_header,
+			['normal'] = windowHeader,
+			['hover'] = windowHeader,
+			['active'] = windowHeader,
 			['label normal'] = '#000000',
 			['label hover'] = '#000000',
 			['label active'] = '#000000',
@@ -46,17 +46,17 @@ local style = {
 local check = {value = false}
 
 return function ()
-	nk.style_push(style)
-	if nk.window_begin('Skin Example', 200, 200, 350, 200, 'title', 'movable') then
-		nk.layout_space_begin('dynamic', 150, 3)
-		nk.layout_space_push(0.14, 0.15, 0.72, 0.3)
+	nk.stylePush(style)
+	if nk.windowBegin('Skin Example', 200, 200, 350, 200, 'title', 'movable') then
+		nk.layoutSpaceBegin('dynamic', 150, 3)
+		nk.layoutSpacePush(0.14, 0.15, 0.72, 0.3)
 		nk.label('Skin example! Styles can change skins, colors, padding, font, and more.', 'wrap')
-		nk.layout_space_push(0.2, 0.55, 0.2, 0.2)
+		nk.layoutSpacePush(0.2, 0.55, 0.2, 0.2)
 		nk.button('Button')
-		nk.layout_space_push(0.55, 0.55, 0.3, 0.2)
+		nk.layoutSpacePush(0.55, 0.55, 0.3, 0.2)
 		nk.checkbox('Checkbox', check)
-		nk.layout_space_end()
+		nk.layoutSpaceEnd()
 	end
-	nk.window_end()
-	nk.style_pop()
+	nk.windowEnd()
+	nk.stylePop()
 end

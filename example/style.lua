@@ -33,36 +33,36 @@ local colors = {
 	['tab header'] = '#282828'
 }
 
-local color_names = {}
+local colorNames = {}
 
 for name,_ in pairs(colors) do
-	color_names[#color_names + 1] = name
+	colorNames[#colorNames + 1] = name
 end
 
-table.sort(color_names)
+table.sort(colorNames)
 
 return function ()
-	nk.style_load_colors(colors)
-	nk.window_begin('Style', 400, 50, 350, 450, 'border', 'movable', 'title', 'scrollbar')
-		nk.layout_row('dynamic', 25, 2)
-		for _,name in ipairs(color_names) do
+	nk.styleLoadColors(colors)
+	nk.windowBegin('Style', 400, 50, 350, 450, 'border', 'movable', 'title', 'scrollbar')
+		nk.layoutRow('dynamic', 25, 2)
+		for _,name in ipairs(colorNames) do
 			nk.label(name..':')
 			local color = colors[name]
-			if nk.combobox_begin(nil, color, 200, 200) then
-				nk.layout_row('dynamic', 90, 1)
-				color = nk.color_picker(color)
+			if nk.comboboxBegin(nil, color, 200, 200) then
+				nk.layoutRow('dynamic', 90, 1)
+				color = nk.colorPicker(color)
 				colors[name] = color
-				local r, g, b = nk.color_parse_rgba(color)
-				nk.layout_row('dynamic', 25, {.25, .75})
+				local r, g, b = nk.colorParseRGBA(color)
+				nk.layoutRow('dynamic', 25, {.25, .75})
 				nk.label('R: '..r)
 				r = nk.slider(0, r, 255, 1)
 				nk.label('G: '..g)
 				g = nk.slider(0, g, 255, 1)
 				nk.label('B: '..b)
 				b = nk.slider(0, b, 255, 1)
-				colors[name] = nk.color_rgba(r, g, b)
-				nk.combobox_end()
+				colors[name] = nk.colorRGBA(r, g, b)
+				nk.comboboxEnd()
 			end
 		end
-	nk.window_end()
+	nk.windowEnd()
 end

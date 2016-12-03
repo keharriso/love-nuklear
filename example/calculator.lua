@@ -61,10 +61,10 @@ local function display()
 end
 
 return function ()
-	if nk.window_begin('Calculator', 50, 50, 180, 250, 'border', 'movable', 'title') then
-		nk.layout_row('dynamic', 35, 1)
+	if nk.windowBegin('Calculator', 50, 50, 180, 250, 'border', 'movable', 'title') then
+		nk.layoutRow('dynamic', 35, 1)
 		nk.label(display(), 'right')
-		nk.layout_row('dynamic', 35, 4)
+		nk.layoutRow('dynamic', 35, 4)
 		for i=1,16 do
 			if i >= 13 and i < 16 then
 				if i == 13 then
@@ -91,5 +91,5 @@ return function ()
 			end
 		end
 	end
-	nk.window_end()
+	nk.windowEnd()
 end

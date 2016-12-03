@@ -17,17 +17,17 @@ end
 local combo = {value = 1, items = {'A', 'B', 'C'}}
 
 function love.update(dt)
-	nk.frame_begin()
-	if nk.window_begin('Simple Example', 100, 100, 200, 160,
+	nk.frameBegin()
+	if nk.windowBegin('Simple Example', 100, 100, 200, 160,
 			'border', 'title', 'movable') then
-		nk.layout_row('dynamic', 30, 1)
+		nk.layoutRow('dynamic', 30, 1)
 		nk.label('Hello, world!')
-		nk.layout_row('dynamic', 30, 2)
+		nk.layoutRow('dynamic', 30, 2)
 		nk.label('Combo box:')
 		if nk.combobox(combo, combo.items) then
 			print('Combo!', combo.items[combo.value])
 		end
-		nk.layout_row('dynamic', 30, 3)
+		nk.layoutRow('dynamic', 30, 3)
 		nk.label('Buttons:')
 		if nk.button('Sample') then
 			print('Sample!')
@@ -36,8 +36,8 @@ function love.update(dt)
 			print('Button!')
 		end
 	end
-	nk.window_end()
-	nk.frame_end()
+	nk.windowEnd()
+	nk.frameEnd()
 end
 
 function love.draw()
@@ -91,4 +91,3 @@ A complete description of all functions and style properties, alongside addition
 ## License
 
 Copyright (c) 2016 Kevin Harrison, released under the MIT License (see LICENSE for details).
-
