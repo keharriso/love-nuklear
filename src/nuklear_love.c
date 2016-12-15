@@ -3356,7 +3356,7 @@ LUALIB_API int luaopen_nuklear(lua_State *L)
   NK_LOVE_REGISTER("window_is_hovered", nk_love_window_is_hovered);
   NK_LOVE_REGISTER("windowIsHovered", nk_love_window_is_hovered);
   NK_LOVE_REGISTER("window_is_any_hovered", nk_love_window_is_any_hovered);
-  NK_LOVE_REGISTER("windowsIsAnyHovered", nk_love_window_is_any_hovered);
+  NK_LOVE_REGISTER("windowIsAnyHovered", nk_love_window_is_any_hovered);
   NK_LOVE_REGISTER("item_is_any_active", nk_love_item_is_any_active);
   NK_LOVE_REGISTER("itemIsAnyActive", nk_love_item_is_any_active);
   NK_LOVE_REGISTER("window_set_bounds", nk_love_window_set_bounds);
