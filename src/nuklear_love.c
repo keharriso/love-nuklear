@@ -1,6 +1,5 @@
 /*
- * Nuklear - v1.00 - public domain
- * no warrenty implied; use at your own risk.
+ * LOVE-Nuklear - MIT Licensed; no warranty implied; use at your own risk.
  * authored from 2015-2016 by Micha Mettke
  * adapted to LOVE in 2016 by Kevin Harrison
  */
@@ -17,6 +16,13 @@
 #define NK_INCLUDE_STANDARD_VARARGS
 #define NK_INCLUDE_DEFAULT_ALLOCATOR
 #define NK_PRIVATE
+#define NK_BUTTON_BEHAVIOR_STACK_SIZE 32
+#define NK_FONT_STACK_SIZE 32
+#define NK_STYLE_ITEM_STACK_SIZE 256
+#define NK_FLOAT_STACK_SIZE 256
+#define NK_VECTOR_STACK_SIZE 128
+#define NK_FLAGS_STACK_SIZE 64
+#define NK_COLOR_STACK_SIZE 256
 #include "nuklear/nuklear.h"
 
 /*
