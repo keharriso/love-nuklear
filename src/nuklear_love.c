@@ -1,5 +1,5 @@
 /*
- * LOVE-Nuklear - MIT Licensed; no warranty implied; use at your own risk.
+ * LOVE-Nuklear - MIT licensed; no warranty implied; use at your own risk.
  * authored from 2015-2016 by Micha Mettke
  * adapted to LOVE in 2016 by Kevin Harrison
  */
@@ -33,7 +33,7 @@
  * ===============================================================
  */
 
-#define NK_LOVE_MAX_POINTS 256
+#define NK_LOVE_MAX_POINTS 1024
 #define NK_LOVE_EDIT_BUFFER_LEN (1024 * 1024)
 #define NK_LOVE_COMBOBOX_MAX_ITEMS 1024
 #define NK_LOVE_MAX_FONTS 1024
@@ -48,6 +48,7 @@ static const char **combobox_items;
 static struct nk_cursor cursors[NK_CURSOR_COUNT];
 static float *layout_ratios;
 static int layout_ratio_count;
+static float *points;
 
 static void nk_love_configureGraphics(int line_thickness, struct nk_color col)
 {
@@ -65,6 +66,23 @@ static void nk_love_configureGraphics(int line_thickness, struct nk_color col)
 	lua_pushnumber(L, col.b);
 	lua_pushnumber(L, col.a);
 	lua_call(L, 4, 0);
+}
+
+static void nk_love_getGraphics(float *line_thickness, struct nk_color *color)
+{
+	lua_getglobal(L, "love");
+	lua_getfield(L, -1, "graphics");
+	lua_getfield(L, -1, "getLineWidth");
+	lua_call(L, 0, 1);
+	*line_thickness = lua_tonumber(L, -1);
+	lua_pop(L, 1);
+	lua_getfield(L, -1, "getColor");
+	lua_call(L, 0, 4);
+	color->r = lua_tointeger(L, -4);
+	color->g = lua_tointeger(L, -3);
+	color->b = lua_tointeger(L, -2);
+	color->a = lua_tointeger(L, -1);
+	lua_pop(L, 6);
 }
 
 static void nk_love_scissor(int x, int y, int w, int h)
@@ -211,7 +229,7 @@ static void nk_love_draw_curve(struct nk_vec2i p1, struct nk_vec2i p2,
 		lua_pushnumber(L, x);
 		lua_pushnumber(L, y);
 	}
-	lua_call(L, (num_segments + 1) * 2, 0);
+	lua_call(L, num_segments * 2, 0);
 	lua_pop(L, 1);
 }
 
@@ -804,6 +822,8 @@ static int nk_love_init(lua_State *luaState)
 	nk_love_assert(combobox_items != NULL, "nk.init: out of memory");
 	layout_ratios = malloc(sizeof(float) * NK_LOVE_MAX_RATIOS);
 	nk_love_assert(layout_ratios != NULL, "nk.init: out of memory");
+	points = malloc(sizeof(float) * NK_LOVE_MAX_POINTS * 2);
+	nk_love_assert(points != NULL, "nk.init: out of memory");
 	return 0;
 }
 
@@ -822,6 +842,8 @@ static int nk_love_shutdown(lua_State *luaState)
 	combobox_items = NULL;
 	free(layout_ratios);
 	layout_ratios = NULL;
+	free(points);
+	points = NULL;
 	return 0;
 }
 
@@ -1869,11 +1891,28 @@ static int nk_love_label(lua_State *L)
 
 static int nk_love_image(lua_State *L)
 {
-	nk_love_assert(lua_gettop(L) == 1, "nk.image: wrong number of arguments");
+	int argc = lua_gettop(L);
+	nk_love_assert(argc == 1 || argc == 5, "nk.image: wrong number of arguments");
 	nk_love_assert_type(1, "Image", "nk.image: arg 1 should be an image");
 	struct nk_image image;
+	lua_pushvalue(L, 1);
 	nk_love_toimage(&image);
-	nk_image(&context, image);
+	if (argc == 1) {
+		nk_image(&context, image);
+	} else {
+		nk_love_assert(lua_type(L, 2) == LUA_TNUMBER, "nk.image: arg 2 should be a number");
+		nk_love_assert(lua_type(L, 3) == LUA_TNUMBER, "nk.image: arg 3 should be a number");
+		nk_love_assert(lua_type(L, 4) == LUA_TNUMBER, "nk.image: arg 4 should be a number");
+		nk_love_assert(lua_type(L, 5) == LUA_TNUMBER, "nk.image: arg 5 should be a number");
+		float x = lua_tonumber(L, 2);
+		float y = lua_tonumber(L, 3);
+		float w = lua_tonumber(L, 4);
+		float h = lua_tonumber(L, 5);
+		float line_thickness;
+		struct nk_color color;
+		nk_love_getGraphics(&line_thickness, &color);
+		nk_draw_image(&context.current->buffer, nk_rect(x, y, w, h), &image, color);
+	}
 	return 0;
 }
 
@@ -3277,7 +3316,8 @@ static int nk_love_widget_is_mouse_clicked(lua_State *L)
 			nk_love_error("nk.widgetIsMouseClicked: arg 1 should be a button");
 		}
 	}
-	int clicked = nk_widget_is_mouse_clicked(&context, button);
+	int clicked = (context.active == context.current) &&
+			nk_input_is_mouse_pressed(&context.input, button);
 	lua_pushboolean(L, clicked);
 	return 1;
 }
@@ -3304,6 +3344,59 @@ static int nk_love_widget_has_mouse_click(lua_State *L)
 	return 1;
 }
 
+#define NK_LOVE_WIDGET_HAS_MOUSE(name, down) \
+	int argc = lua_gettop(L); \
+	nk_love_assert(argc >= 0 && argc <= 1, name ": wrong number of arguments"); \
+	enum nk_buttons button = NK_BUTTON_LEFT; \
+	if (argc >= 1 && lua_type(L, 1) != LUA_TNIL) { \
+		nk_love_assert(lua_type(L, 1) == LUA_TSTRING, name ": arg 1 should be a button"); \
+		if (!nk_love_parse_button(lua_tostring(L, 1), &button)) { \
+			nk_love_error(name ": arg 1 should be a button"); \
+		} \
+	} \
+	int ret = nk_widget_has_mouse_click_down(&context, button, down); \
+	lua_pushboolean(L, ret); \
+	return 1
+
+static int nk_love_widget_has_mouse_pressed(lua_State *L)
+{
+	NK_LOVE_WIDGET_HAS_MOUSE("nk.widgetHasMousePressed", nk_true);
+}
+
+static int nk_love_widget_has_mouse_released(lua_State *L)
+{
+	NK_LOVE_WIDGET_HAS_MOUSE("nk.widgetHasMouseReleased", nk_false);
+}
+
+#undef NK_LOVE_WIDGET_HAS_MOUSE
+
+#define NK_LOVE_WIDGET_IS_MOUSE(name, down) \
+	int argc = lua_gettop(L); \
+	nk_love_assert(argc >= 0 && argc <= 1, name ": wrong number of arguments"); \
+	enum nk_buttons button = NK_BUTTON_LEFT; \
+	if (argc >= 1 && lua_type(L, 1) != LUA_TNIL) { \
+		nk_love_assert(lua_type(L, 1) == LUA_TSTRING, name ": arg 1 should be a button"); \
+		if (!nk_love_parse_button(lua_tostring(L, 1), &button)) { \
+			nk_love_error(name ": arg 1 should be a button"); \
+		} \
+	} \
+	struct nk_rect bounds = nk_widget_bounds(&context); \
+	int ret = nk_input_is_mouse_click_down_in_rect(&context.input, button, bounds, down); \
+	lua_pushboolean(L, ret); \
+	return 1
+
+static int nk_love_widget_is_mouse_pressed(lua_State *L)
+{
+	NK_LOVE_WIDGET_IS_MOUSE("nk.widgetIsMousePressed", nk_true);
+}
+
+static int nk_love_widget_is_mouse_released(lua_State *L)
+{
+	NK_LOVE_WIDGET_IS_MOUSE("nk.widgetIsMouseReleased", nk_false);
+}
+
+#undef NK_LOVE_WIDGET_IS_MOUSE
+
 static int nk_love_spacing(lua_State *L)
 {
 	nk_love_assert(lua_gettop(L) == 1, "nk.spacing: wrong number of arguments");
@@ -3311,6 +3404,305 @@ static int nk_love_spacing(lua_State *L)
 	int cols = lua_tointeger(L, 1);
 	nk_spacing(&context, cols);
 	return 0;
+}
+
+static int nk_love_line(lua_State *L)
+{
+	int argc = lua_gettop(L);
+	nk_love_assert(argc >= 4 && argc % 2 == 0, "nk.line: wrong number of arguments");
+	int i;
+	for (i = 0; i < argc; ++i) {
+		nk_love_assert(lua_type(L, i + 1) == LUA_TNUMBER, "nk.line: point coordinates should be numbers");
+		points[i] = lua_tointeger(L, i + 1);
+	}
+	float line_thickness;
+	struct nk_color color;
+	nk_love_getGraphics(&line_thickness, &color);
+	nk_stroke_polyline(&context.current->buffer, points, argc / 2, line_thickness, color);
+	return 0;
+}
+
+static int nk_love_curve(lua_State *L)
+{
+	nk_love_assert(lua_gettop(L) == 8, "nk.curve: wrong number of arguments");
+	int i;
+	for (i = 1; i <= 8; ++i) {
+		nk_love_assert(lua_type(L, i) == LUA_TNUMBER, "nk.curve: point coordinates should be numbers");
+	}
+	float ax = lua_tonumber(L, 1);
+	float ay = lua_tonumber(L, 2);
+	float ctrl0x = lua_tonumber(L, 3);
+	float ctrl0y = lua_tonumber(L, 4);
+	float ctrl1x = lua_tonumber(L, 5);
+	float ctrl1y = lua_tonumber(L, 6);
+	float bx = lua_tonumber(L, 7);
+	float by = lua_tonumber(L, 8);
+	float line_thickness;
+	struct nk_color color;
+	nk_love_getGraphics(&line_thickness, &color);
+	nk_stroke_curve(&context.current->buffer, ax, ay, ctrl0x, ctrl0y, ctrl1x, ctrl1y, bx, by, line_thickness, color);
+	return 0;
+}
+
+static int nk_love_polygon(lua_State *L)
+{
+	int argc = lua_gettop(L);
+	nk_love_assert(argc >= 7 && argc % 2 == 1, "nk.polygon: wrong number of arguments");
+	nk_love_assert(lua_type(L, 1) == LUA_TSTRING, "nk.polygon: arg 1 should be a draw mode");
+	const char *mode = lua_tostring(L, 1);
+	int i;
+	for (i = 0; i < argc - 1; ++i) {
+		nk_love_assert(lua_type(L, i + 2) == LUA_TNUMBER, "nk.polygon: point coordinates should be numbers");
+		points[i] = lua_tonumber(L, i + 2);
+	}
+	float line_thickness;
+	struct nk_color color;
+	nk_love_getGraphics(&line_thickness, &color);
+	if (!strcmp(mode, "fill")) {
+		nk_fill_polygon(&context.current->buffer, points, (argc - 1) / 2, color);
+	} else if (!strcmp(mode, "line")) {
+		nk_stroke_polygon(&context.current->buffer, points, (argc - 1) / 2, line_thickness, color);
+	} else {
+		nk_love_error("nk.polygon: arg 1 should be a draw mode");
+	}
+	return 0;
+}
+
+static int nk_love_circle(lua_State *L)
+{
+	nk_love_assert(lua_gettop(L) == 4, "nk.circle: wrong number of arguments");
+	nk_love_assert(lua_type(L, 1) == LUA_TSTRING, "nk.circle: arg 1 should be a draw mode");
+	nk_love_assert(lua_type(L, 2) == LUA_TNUMBER, "nk.circle: arg 2 should be a number");
+	nk_love_assert(lua_type(L, 3) == LUA_TNUMBER, "nk.circle: arg 3 should be a number");
+	nk_love_assert(lua_type(L, 4) == LUA_TNUMBER, "nk.circle: arg 4 should be a number");
+	const char *mode = lua_tostring(L, 1);
+	float x = lua_tonumber(L, 2);
+	float y = lua_tonumber(L, 3);
+	float r = lua_tonumber(L, 4);
+	float line_thickness;
+	struct nk_color color;
+	nk_love_getGraphics(&line_thickness, &color);
+	if (!strcmp(mode, "fill")) {
+		nk_fill_circle(&context.current->buffer, nk_rect(x - r, y - r, r * 2, r * 2), color);
+	} else if (!strcmp(mode, "line")) {
+		nk_stroke_circle(&context.current->buffer, nk_rect(x - r, y - r, r * 2, r * 2), line_thickness, color);
+	} else {
+		nk_love_error("nk.circle: arg 1 should be a draw mode");
+	}
+	return 0;
+}
+
+static int nk_love_ellipse(lua_State *L)
+{
+	nk_love_assert(lua_gettop(L) == 5, "nk.ellipse: wrong number of arguments");
+	nk_love_assert(lua_type(L, 1) == LUA_TSTRING, "nk.ellipse: arg 1 should be a draw mode");
+	nk_love_assert(lua_type(L, 2) == LUA_TNUMBER, "nk.ellipse: arg 2 should be a number");
+	nk_love_assert(lua_type(L, 3) == LUA_TNUMBER, "nk.ellipse: arg 3 should be a number");
+	nk_love_assert(lua_type(L, 4) == LUA_TNUMBER, "nk.ellipse: arg 4 should be a number");
+	nk_love_assert(lua_type(L, 5) == LUA_TNUMBER, "nk.ellipse: arg 5 should be a number");
+	const char *mode = lua_tostring(L, 1);
+	float x = lua_tonumber(L, 2);
+	float y = lua_tonumber(L, 3);
+	float rx = lua_tonumber(L, 4);
+	float ry = lua_tonumber(L, 5);
+	float line_thickness;
+	struct nk_color color;
+	nk_love_getGraphics(&line_thickness, &color);
+	if (!strcmp(mode, "fill")) {
+		nk_fill_circle(&context.current->buffer, nk_rect(x - rx, y - ry, rx * 2, ry * 2), color);
+	} else if (!strcmp(mode, "line")) {
+		nk_stroke_circle(&context.current->buffer, nk_rect(x - rx, y - ry, rx * 2, ry * 2), line_thickness, color);
+	} else {
+		nk_love_error("nk.ellipse: arg 1 should be a draw mode");
+	}
+	return 0;
+}
+
+static int nk_love_arc(lua_State *L)
+{
+	nk_love_assert(lua_gettop(L) == 6, "nk.arc: wrong number of arguments");
+	nk_love_assert(lua_type(L, 1) == LUA_TSTRING, "nk.arc: arg 1 should be a draw mode");
+	nk_love_assert(lua_type(L, 2) == LUA_TNUMBER, "nk.arc: arg 2 should be a number");
+	nk_love_assert(lua_type(L, 3) == LUA_TNUMBER, "nk.arc: arg 3 should be a number");
+	nk_love_assert(lua_type(L, 4) == LUA_TNUMBER, "nk.arc: arg 4 should be a number");
+	nk_love_assert(lua_type(L, 5) == LUA_TNUMBER, "nk.arc: arg 5 should be a number");
+	nk_love_assert(lua_type(L, 6) == LUA_TNUMBER, "nk.arc: arg 6 should be a number");
+	const char *mode = lua_tostring(L, 1);
+	float cx = lua_tonumber(L, 2);
+	float cy = lua_tonumber(L, 3);
+	float r = lua_tonumber(L, 4);
+	float a0 = lua_tonumber(L, 5);
+	float a1 = lua_tonumber(L, 6);
+	float line_thickness;
+	struct nk_color color;
+	nk_love_getGraphics(&line_thickness, &color);
+	if (!strcmp(mode, "fill")) {
+		nk_fill_arc(&context.current->buffer, cx, cy, r, a0, a1, color);
+	} else if (!strcmp(mode, "line")) {
+		nk_stroke_arc(&context.current->buffer, cx, cy, r, a0, a1, line_thickness, color);
+	} else {
+		nk_love_error("nk.arc: arg 1 should be a draw mode");
+	}
+	return 0;
+}
+
+static int nk_love_rect_multi_color(lua_State *L)
+{
+	nk_love_assert(lua_gettop(L) == 8, "nk.rectMultiColor: wrong number of arguments");
+	nk_love_assert(lua_type(L, 1) == LUA_TNUMBER, "nk.rectMultiColor: arg 1 should be a number");
+	nk_love_assert(lua_type(L, 2) == LUA_TNUMBER, "nk.rectMultiColor: arg 2 should be a number");
+	nk_love_assert(lua_type(L, 3) == LUA_TNUMBER, "nk.rectMultiColor: arg 3 should be a number");
+	nk_love_assert(lua_type(L, 4) == LUA_TNUMBER, "nk.rectMultiColor: arg 4 should be a number");
+	nk_love_assert_color(5, "nk.rectMultiColor: arg 5 should be a color string");
+	nk_love_assert_color(6, "nk.rectMultiColor: arg 6 should be a color string");
+	nk_love_assert_color(7, "nk.rectMultiColor: arg 7 should be a color string");
+	nk_love_assert_color(8, "nk.rectMultiColor: arg 8 should be a color string");
+	float x = lua_tonumber(L, 1);
+	float y = lua_tonumber(L, 2);
+	float w = lua_tonumber(L, 3);
+	float h = lua_tonumber(L, 4);
+	struct nk_color topLeft = nk_love_color_parse(lua_tostring(L, 5));
+	struct nk_color topRight = nk_love_color_parse(lua_tostring(L, 6));
+	struct nk_color bottomLeft = nk_love_color_parse(lua_tostring(L, 7));
+	struct nk_color bottomRight = nk_love_color_parse(lua_tostring(L, 8));
+	nk_fill_rect_multi_color(&context.current->buffer, nk_rect(x, y, w, h), topLeft, topRight, bottomLeft, bottomRight);
+	return 0;
+}
+
+static int nk_love_push_scissor(lua_State *L)
+{
+	nk_love_assert(lua_gettop(L) == 4, "nk.scissor: wrong number of arguments");
+	nk_love_assert(lua_type(L, 1) == LUA_TNUMBER, "nk.scissor: arg 1 should be a number");
+	nk_love_assert(lua_type(L, 2) == LUA_TNUMBER, "nk.scissor: arg 2 should be a number");
+	nk_love_assert(lua_type(L, 3) == LUA_TNUMBER, "nk.scissor: arg 3 should be a number");
+	nk_love_assert(lua_type(L, 4) == LUA_TNUMBER, "nk.scissor: arg 4 should be a number");
+	float x = lua_tonumber(L, 1);
+	float y = lua_tonumber(L, 2);
+	float w = lua_tonumber(L, 3);
+	float h = lua_tonumber(L, 4);
+	nk_push_scissor(&context.current->buffer, nk_rect(x, y, w, h));
+	return 0;
+}
+
+static int nk_love_text(lua_State *L)
+{
+	nk_love_assert(lua_gettop(L) == 5, "nk.text: wrong number of arguments");
+	nk_love_assert(lua_type(L, 1) == LUA_TSTRING, "nk.text: arg 1 should be a string");
+	nk_love_assert(lua_type(L, 2) == LUA_TNUMBER, "nk.text: arg 2 should be a number");
+	nk_love_assert(lua_type(L, 3) == LUA_TNUMBER, "nk.text: arg 3 should be a number");
+	nk_love_assert(lua_type(L, 4) == LUA_TNUMBER, "nk.text: arg 4 should be a number");
+	nk_love_assert(lua_type(L, 5) == LUA_TNUMBER, "nk.text: arg 5 should be a number");
+	const char *text = lua_tostring(L, 1);
+	float x = lua_tonumber(L, 2);
+	float y = lua_tonumber(L, 3);
+	float w = lua_tonumber(L, 4);
+	float h = lua_tonumber(L, 5);
+	lua_getglobal(L, "love");
+	lua_getfield(L, -1, "graphics");
+	lua_getfield(L, -1, "getFont");
+	lua_call(L, 0, 1);
+	nk_love_tofont(&fonts[font_count]);
+	float line_thickness;
+	struct nk_color color;
+	nk_love_getGraphics(&line_thickness, &color);
+	nk_draw_text(&context.current->buffer, nk_rect(x, y, w, h), text, strlen(text), &fonts[font_count++], nk_rgba(0, 0, 0, 0), color);
+	return 0;
+}
+
+#define NK_LOVE_INPUT_HAS_MOUSE(name, down) \
+	int argc = lua_gettop(L); \
+	nk_love_assert(argc == 5, name ": wrong number of arguments"); \
+	nk_love_assert(lua_type(L, 1) == LUA_TSTRING, name ": arg 1 should be a button"); \
+	enum nk_buttons button; \
+	if (!nk_love_parse_button(lua_tostring(L, 1), &button)) { \
+		nk_love_error(name ": arg 1 should be a button"); \
+	} \
+	nk_love_assert(lua_type(L, 2) == LUA_TNUMBER, name ": arg 2 should be a number"); \
+	nk_love_assert(lua_type(L, 3) == LUA_TNUMBER, name ": arg 3 should be a number"); \
+	nk_love_assert(lua_type(L, 4) == LUA_TNUMBER, name ": arg 4 should be a number"); \
+	nk_love_assert(lua_type(L, 5) == LUA_TNUMBER, name ": arg 5 should be a number"); \
+	float x = lua_tonumber(L, 2); \
+	float y = lua_tonumber(L, 3); \
+	float w = lua_tonumber(L, 4); \
+	float h = lua_tonumber(L, 5); \
+	int ret = nk_input_has_mouse_click_down_in_rect(&context.input, button, nk_rect(x, y, w, h), down); \
+	lua_pushboolean(L, ret); \
+	return 1
+
+static int nk_love_input_has_mouse_pressed(lua_State *L)
+{
+	NK_LOVE_INPUT_HAS_MOUSE("nk.inputHasMousePressed", nk_true);
+}
+
+static int nk_love_input_has_mouse_released(lua_State *L)
+{
+	NK_LOVE_INPUT_HAS_MOUSE("nk.inputHasMouseReleased", nk_false);
+}
+
+#undef NK_LOVE_INPUT_HAS_MOUSE
+
+#define NK_LOVE_INPUT_IS_MOUSE(name, down) \
+	int argc = lua_gettop(L); \
+	nk_love_assert(argc == 5, name ": wrong number of arguments"); \
+	enum nk_buttons button; \
+	nk_love_assert(lua_type(L, 1) == LUA_TSTRING, name ": arg 1 should be a button"); \
+	if (!nk_love_parse_button(lua_tostring(L, 1), &button)) { \
+		nk_love_error(name ": arg 1 should be a button"); \
+	} \
+	nk_love_assert(lua_type(L, 2) == LUA_TNUMBER, name ": arg 2 should be a number"); \
+	nk_love_assert(lua_type(L, 3) == LUA_TNUMBER, name ": arg 3 should be a number"); \
+	nk_love_assert(lua_type(L, 4) == LUA_TNUMBER, name ": arg 4 should be a number"); \
+	nk_love_assert(lua_type(L, 5) == LUA_TNUMBER, name ": arg 5 should be a number"); \
+	float x = lua_tonumber(L, 2); \
+	float y = lua_tonumber(L, 3); \
+	float w = lua_tonumber(L, 4); \
+	float h = lua_tonumber(L, 5); \
+	int ret = nk_input_is_mouse_click_down_in_rect(&context.input, button, nk_rect(x, y, w, h), down); \
+	lua_pushboolean(L, ret); \
+	return 1
+
+static int nk_love_input_is_mouse_pressed(lua_State *L)
+{
+	NK_LOVE_INPUT_IS_MOUSE("nk.inputIsMousePressed", nk_true);
+}
+
+static int nk_love_input_is_mouse_released(lua_State *L)
+{
+	NK_LOVE_INPUT_IS_MOUSE("nk.inputIsMouseReleased", nk_false);
+}
+
+#undef NK_LOVE_INPUT_IS_MOUSE
+
+static int nk_love_input_was_hovered(lua_State *L)
+{
+	nk_love_assert(lua_gettop(L) == 4, "nk.inputWasHovered: wrong number of arguments");
+	nk_love_assert(lua_type(L, 1) == LUA_TNUMBER, "nk.inputWasHovered: arg 1 should be a number");
+	nk_love_assert(lua_type(L, 2) == LUA_TNUMBER, "nk.inputWasHovered: arg 2 should be a number");
+	nk_love_assert(lua_type(L, 3) == LUA_TNUMBER, "nk.inputWasHovered: arg 3 should be a number");
+	nk_love_assert(lua_type(L, 4) == LUA_TNUMBER, "nk.inputWasHovered: arg 4 should be a number");
+	float x = lua_tonumber(L, 1);
+	float y = lua_tonumber(L, 2);
+	float w = lua_tonumber(L, 3);
+	float h = lua_tonumber(L, 4);
+	int was_hovered = nk_input_is_mouse_prev_hovering_rect(&context.input, nk_rect(x, y, w, h));
+	lua_pushboolean(L, was_hovered);
+	return 1;
+}
+
+static int nk_love_input_is_hovered(lua_State *L)
+{
+	nk_love_assert(lua_gettop(L) == 4, "nk.inputIsHovered: wrong number of arguments");
+	nk_love_assert(lua_type(L, 1) == LUA_TNUMBER, "nk.inputIsHovered: arg 1 should be a number");
+	nk_love_assert(lua_type(L, 2) == LUA_TNUMBER, "nk.inputIsHovered: arg 2 should be a number");
+	nk_love_assert(lua_type(L, 3) == LUA_TNUMBER, "nk.inputIsHovered: arg 3 should be a number");
+	nk_love_assert(lua_type(L, 4) == LUA_TNUMBER, "nk.inputIsHovered: arg 4 should be a number");
+	float x = lua_tonumber(L, 1);
+	float y = lua_tonumber(L, 2);
+	float w = lua_tonumber(L, 3);
+	float h = lua_tonumber(L, 4);
+	int is_hovered = nk_input_is_mouse_hovering_rect(&context.input, nk_rect(x, y, w, h));
+	lua_pushboolean(L, is_hovered);
+	return 1;
 }
 
 #define NK_LOVE_REGISTER(name, func) \
@@ -3516,7 +3908,29 @@ LUALIB_API int luaopen_nuklear(lua_State *L)
   NK_LOVE_REGISTER("widgetIsMouseClicked", nk_love_widget_is_mouse_clicked);
   NK_LOVE_REGISTER("widget_has_mouse_click", nk_love_widget_has_mouse_click);
   NK_LOVE_REGISTER("widgetHasMouseClick", nk_love_widget_has_mouse_click);
+	NK_LOVE_REGISTER("widgetHasMousePressed", nk_love_widget_has_mouse_pressed);
+	NK_LOVE_REGISTER("widgetHasMouseReleased", nk_love_widget_has_mouse_released);
+	NK_LOVE_REGISTER("widgetIsMousePressed", nk_love_widget_is_mouse_pressed);
+	NK_LOVE_REGISTER("widgetIsMouseReleased", nk_love_widget_is_mouse_released);
   NK_LOVE_REGISTER("spacing", nk_love_spacing);
+
+	NK_LOVE_REGISTER("line", nk_love_line);
+	NK_LOVE_REGISTER("curve", nk_love_curve);
+	NK_LOVE_REGISTER("polygon", nk_love_polygon);
+	NK_LOVE_REGISTER("circle", nk_love_circle);
+	NK_LOVE_REGISTER("ellipse", nk_love_ellipse);
+	NK_LOVE_REGISTER("arc", nk_love_arc);
+	NK_LOVE_REGISTER("rectMultiColor", nk_love_rect_multi_color);
+	NK_LOVE_REGISTER("scissor", nk_love_push_scissor);
+	/* image */
+	NK_LOVE_REGISTER("text", nk_love_text);
+
+	NK_LOVE_REGISTER("inputHasMousePressed", nk_love_input_has_mouse_pressed);
+	NK_LOVE_REGISTER("inputHasMouseReleased", nk_love_input_has_mouse_released);
+	NK_LOVE_REGISTER("inputIsMousePressed", nk_love_input_is_mouse_pressed);
+	NK_LOVE_REGISTER("inputIsMouseReleased", nk_love_input_is_mouse_released);
+	NK_LOVE_REGISTER("inputWasHovered", nk_love_input_was_hovered);
+	NK_LOVE_REGISTER("inputIsHovered", nk_love_input_is_hovered);
 
   return 1;
 }

@@ -3,6 +3,7 @@
 local nk = require 'nuklear'
 
 local calculator = require 'calculator'
+local draw = require 'draw'
 local overview = require 'overview'
 local style = require 'style'
 local skin = require 'skin'
@@ -16,12 +17,14 @@ function love.update(dt)
 		calculator()
 		style()
 		overview()
+		draw()
 		skin()
 	nk.frameEnd()
 end
 
 function love.draw()
 	nk.draw()
+	love.graphics.print("Current FPS: "..tostring(love.timer.getFPS( )), 10, 10)
 end
 
 function love.keypressed(key, scancode, isrepeat)
