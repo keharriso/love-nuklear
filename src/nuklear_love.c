@@ -46,9 +46,8 @@ static int font_count;
 static char *edit_buffer;
 static const char **combobox_items;
 static struct nk_cursor cursors[NK_CURSOR_COUNT];
-static float *layout_ratios;
+static float *floats;
 static int layout_ratio_count;
-static float *points;
 
 static void nk_love_configureGraphics(int line_thickness, struct nk_color col)
 {
@@ -820,10 +819,8 @@ static int nk_love_init(lua_State *luaState)
 	nk_love_assert(edit_buffer != NULL, "nk.init: out of memory");
 	combobox_items = malloc(sizeof(char*) * NK_LOVE_COMBOBOX_MAX_ITEMS);
 	nk_love_assert(combobox_items != NULL, "nk.init: out of memory");
-	layout_ratios = malloc(sizeof(float) * NK_LOVE_MAX_RATIOS);
-	nk_love_assert(layout_ratios != NULL, "nk.init: out of memory");
-	points = malloc(sizeof(float) * NK_LOVE_MAX_POINTS * 2);
-	nk_love_assert(points != NULL, "nk.init: out of memory");
+	floats = malloc(sizeof(float) * NK_MAX(NK_LOVE_MAX_RATIOS, NK_LOVE_MAX_POINTS * 2));
+	nk_love_assert(floats != NULL, "nk.init: out of memory");
 	return 0;
 }
 
@@ -840,10 +837,8 @@ static int nk_love_shutdown(lua_State *luaState)
 	edit_buffer = NULL;
 	free(combobox_items);
 	combobox_items = NULL;
-	free(layout_ratios);
-	layout_ratios = NULL;
-	free(points);
-	points = NULL;
+	free(floats);
+	floats = NULL;
 	return 0;
 }
 
@@ -1491,10 +1486,10 @@ static int nk_love_layout_row(lua_State *L)
 		int i, j;
 		for (i = 1, j = layout_ratio_count; i <= cols && j < NK_LOVE_MAX_RATIOS; ++i, ++j) {
 			lua_rawgeti(L, -1, i);
-			layout_ratios[j] = lua_tonumber(L, -1);
+			floats[j] = lua_tonumber(L, -1);
 			lua_pop(L, 1);
 		}
-		nk_layout_row(&context, format, height, cols, layout_ratios + layout_ratio_count);
+		nk_layout_row(&context, format, height, cols, floats + layout_ratio_count);
 		layout_ratio_count += cols;
 	}
 	return 0;
@@ -3413,12 +3408,12 @@ static int nk_love_line(lua_State *L)
 	int i;
 	for (i = 0; i < argc; ++i) {
 		nk_love_assert(lua_type(L, i + 1) == LUA_TNUMBER, "nk.line: point coordinates should be numbers");
-		points[i] = lua_tointeger(L, i + 1);
+		floats[i] = lua_tonumber(L, i + 1);
 	}
 	float line_thickness;
 	struct nk_color color;
 	nk_love_getGraphics(&line_thickness, &color);
-	nk_stroke_polyline(&context.current->buffer, points, argc / 2, line_thickness, color);
+	nk_stroke_polyline(&context.current->buffer, floats, argc / 2, line_thickness, color);
 	return 0;
 }
 
@@ -3453,15 +3448,15 @@ static int nk_love_polygon(lua_State *L)
 	int i;
 	for (i = 0; i < argc - 1; ++i) {
 		nk_love_assert(lua_type(L, i + 2) == LUA_TNUMBER, "nk.polygon: point coordinates should be numbers");
-		points[i] = lua_tonumber(L, i + 2);
+		floats[i] = lua_tonumber(L, i + 2);
 	}
 	float line_thickness;
 	struct nk_color color;
 	nk_love_getGraphics(&line_thickness, &color);
 	if (!strcmp(mode, "fill")) {
-		nk_fill_polygon(&context.current->buffer, points, (argc - 1) / 2, color);
+		nk_fill_polygon(&context.current->buffer, floats, (argc - 1) / 2, color);
 	} else if (!strcmp(mode, "line")) {
-		nk_stroke_polygon(&context.current->buffer, points, (argc - 1) / 2, line_thickness, color);
+		nk_stroke_polygon(&context.current->buffer, floats, (argc - 1) / 2, line_thickness, color);
 	} else {
 		nk_love_error("nk.polygon: arg 1 should be a draw mode");
 	}
