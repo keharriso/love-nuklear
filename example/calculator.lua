@@ -1,7 +1,5 @@
 -- Simple calculator example, adapted from the original nuklear demo.
 
-local nk = require 'nuklear'
-
 local ops = {'+', '-', '*', '/'}
 local a, b, op = '0'
 
@@ -60,36 +58,36 @@ local function display()
 	return b or a
 end
 
-return function ()
-	if nk.windowBegin('Calculator', 50, 50, 180, 250, 'border', 'movable', 'title') then
-		nk.layoutRow('dynamic', 35, 1)
-		nk.label(display(), 'right')
-		nk.layoutRow('dynamic', 35, 4)
+return function (ui)
+	if ui:windowBegin('Calculator', 50, 50, 180, 250, 'border', 'movable', 'title') then
+		ui:layoutRow('dynamic', 35, 1)
+		ui:label(display(), 'right')
+		ui:layoutRow('dynamic', 35, 4)
 		for i=1,16 do
 			if i >= 13 and i < 16 then
 				if i == 13 then
-					if nk.button('C') then
+					if ui:button('C') then
 						clear()
 					end
-					if nk.button('0') then
+					if ui:button('0') then
 						digit('0')
 					end
-					if nk.button('=') then
+					if ui:button('=') then
 						equals()
 					end
 				end
 			elseif i % 4 ~= 0 then
 				local d = tostring(math.floor(i / 4) * 3 + (i % 4))
-				if nk.button(d) then
+				if ui:button(d) then
 					digit(d)
 				end
 			else
 				local o = ops[math.floor(i / 4)]
-				if nk.button(o) then
+				if ui:button(o) then
 					operator(o)
 				end
 			end
 		end
 	end
-	nk.windowEnd()
+	ui:windowEnd()
 end

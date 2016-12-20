@@ -1,6 +1,6 @@
 -- Show off some of the styling options.
 
-local nk = require 'nuklear'
+local nuklear = require "nuklear"
 
 local colors = {
 	['text'] = '#afafaf',
@@ -41,28 +41,29 @@ end
 
 table.sort(colorNames)
 
-return function ()
-	nk.styleLoadColors(colors)
-	nk.windowBegin('Style', 400, 50, 350, 450, 'border', 'movable', 'title', 'scrollbar')
-		nk.layoutRow('dynamic', 25, 2)
+return function (ui)
+	ui:styleLoadColors(colors)
+	if ui:windowBegin('Style', 400, 50, 350, 450, 'border', 'movable', 'title', 'scrollbar') then
+		ui:layoutRow('dynamic', 25, 2)
 		for _,name in ipairs(colorNames) do
-			nk.label(name..':')
+			ui:label(name..':')
 			local color = colors[name]
-			if nk.comboboxBegin(nil, color, 200, 200) then
-				nk.layoutRow('dynamic', 90, 1)
-				color = nk.colorPicker(color)
+			if ui:comboboxBegin(nil, color, 200, 200) then
+				ui:layoutRow('dynamic', 90, 1)
+				color = ui:colorPicker(color)
 				colors[name] = color
-				local r, g, b = nk.colorParseRGBA(color)
-				nk.layoutRow('dynamic', 25, {.25, .75})
-				nk.label('R: '..r)
-				r = nk.slider(0, r, 255, 1)
-				nk.label('G: '..g)
-				g = nk.slider(0, g, 255, 1)
-				nk.label('B: '..b)
-				b = nk.slider(0, b, 255, 1)
-				colors[name] = nk.colorRGBA(r, g, b)
-				nk.comboboxEnd()
+				local r, g, b = nuklear.colorParseRGBA(color)
+				ui:layoutRow('dynamic', 25, {.25, .75})
+				ui:label('R: '..r)
+				r = ui:slider(0, r, 255, 1)
+				ui:label('G: '..g)
+				g = ui:slider(0, g, 255, 1)
+				ui:label('B: '..b)
+				b = ui:slider(0, b, 255, 1)
+				colors[name] = nuklear.colorRGBA(r, g, b)
+				ui:comboboxEnd()
 			end
 		end
-	nk.windowEnd()
+	end
+	ui:windowEnd()
 end

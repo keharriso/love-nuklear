@@ -8,68 +8,70 @@ Provides a lightweight immediate mode GUI for LÖVE games.
 ```lua
 -- Simple UI example.
 
-local nk = require 'nuklear'
+local nuklear = require 'nuklear'
+
+local ui
 
 function love.load()
-	nk.init()
+	ui = nuklear.init()
 end
 
 local combo = {value = 1, items = {'A', 'B', 'C'}}
 
 function love.update(dt)
-	nk.frameBegin()
-	if nk.windowBegin('Simple Example', 100, 100, 200, 160,
+	ui:frameBegin()
+	if ui:windowBegin('Simple Example', 100, 100, 200, 160,
 			'border', 'title', 'movable') then
-		nk.layoutRow('dynamic', 30, 1)
-		nk.label('Hello, world!')
-		nk.layoutRow('dynamic', 30, 2)
-		nk.label('Combo box:')
-		if nk.combobox(combo, combo.items) then
+		ui:layoutRow('dynamic', 30, 1)
+		ui:label('Hello, world!')
+		ui:layoutRow('dynamic', 30, 2)
+		ui:label('Combo box:')
+		if ui:combobox(combo, combo.items) then
 			print('Combo!', combo.items[combo.value])
 		end
-		nk.layoutRow('dynamic', 30, 3)
-		nk.label('Buttons:')
-		if nk.button('Sample') then
+		ui:layoutRow('dynamic', 30, 3)
+		ui:label('Buttons:')
+		if ui:button('Sample') then
 			print('Sample!')
 		end
-		if nk.button('Button') then
+		if ui:button('Button') then
 			print('Button!')
 		end
 	end
-	nk.windowEnd()
-	nk.frameEnd()
+	ui:windowEnd()
+	ui:frameEnd()
 end
 
 function love.draw()
-	nk.draw()
+	ui:draw()
 end
 
 function love.keypressed(key, scancode, isrepeat)
-	nk.keypressed(key, scancode, isrepeat)
+	ui:keypressed(key, scancode, isrepeat)
 end
 
 function love.keyreleased(key, scancode)
-	nk.keyreleased(key, scancode)
+	ui:keyreleased(key, scancode)
 end
 
 function love.mousepressed(x, y, button, istouch)
-	nk.mousepressed(x, y, button, istouch)
+	ui:mousepressed(x, y, button, istouch)
 end
 
 function love.mousereleased(x, y, button, istouch)
-	nk.mousereleased(x, y, button, istouch)
+	ui:mousereleased(x, y, button, istouch)
 end
 
 function love.mousemoved(x, y, dx, dy, istouch)
-	nk.mousemoved(x, y, dx, dy, istouch)
+	ui:mousemoved(x, y, dx, dy, istouch)
 end
 
 function love.textinput(text)
-	nk.textinput(text)
+	ui:textinput(text)
 end
 
 function love.wheelmoved(x, y)
-	nk.wheelmoved(x, y)
+	ui:wheelmoved(x, y)
 end
 ```
 

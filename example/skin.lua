@@ -1,5 +1,3 @@
-local nk = require 'nuklear'
-
 local windowHeader = love.graphics.newImage 'skin/window_header.png'
 local checkboxSkin = love.graphics.newImage 'skin/checkbox_false.png'
 local checkboxCheck = love.graphics.newImage 'skin/checkbox_true.png'
@@ -45,18 +43,18 @@ local style = {
 
 local check = {value = false}
 
-return function ()
-	nk.stylePush(style)
-	if nk.windowBegin('Skin Example', 200, 200, 350, 200, 'title', 'movable') then
-		nk.layoutSpaceBegin('dynamic', 150, 3)
-		nk.layoutSpacePush(0.14, 0.15, 0.72, 0.3)
-		nk.label('Skin example! Styles can change skins, colors, padding, font, and more.', 'wrap')
-		nk.layoutSpacePush(0.2, 0.55, 0.2, 0.2)
-		nk.button('Button')
-		nk.layoutSpacePush(0.55, 0.55, 0.3, 0.2)
-		nk.checkbox('Checkbox', check)
-		nk.layoutSpaceEnd()
+return function (ui)
+	ui:stylePush(style)
+	if ui:windowBegin('Skin Example', 200, 200, 350, 200, 'title', 'movable') then
+		ui:layoutSpaceBegin('dynamic', 150, 3)
+		ui:layoutSpacePush(0.14, 0.15, 0.72, 0.3)
+		ui:label('Skin example! Styles can change skins, colors, padding, font, and more.', 'wrap')
+		ui:layoutSpacePush(0.2, 0.55, 0.2, 0.2)
+		ui:button('Button')
+		ui:layoutSpacePush(0.55, 0.55, 0.3, 0.2)
+		ui:checkbox('Checkbox', check)
+		ui:layoutSpaceEnd()
 	end
-	nk.windowEnd()
-	nk.stylePop()
+	ui:windowEnd()
+	ui:stylePop()
 end
