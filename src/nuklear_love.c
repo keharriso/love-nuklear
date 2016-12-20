@@ -1030,7 +1030,7 @@ static int nk_love_shutdown(lua_State *luaState)
 	free(ctx->fonts);
 	free(ctx->layout_ratios);
 	lua_getfield(L, LUA_REGISTRYINDEX, "nuklear");
-	lua_pushlightuserdata(L, context);
+	lua_pushlightuserdata(L, ctx);
 	lua_pushnil(L);
 	lua_settable(L, -3);
 	return 0;
