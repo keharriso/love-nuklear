@@ -1,3 +1,5 @@
+-- Demonstrate a number of custom drawing functions.
+
 local img = love.graphics.newImage 'skin/button.png'
 
 return function (ui)

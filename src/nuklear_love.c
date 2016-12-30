@@ -4,6 +4,7 @@
  * adapted to LOVE in 2016 by Kevin Harrison
  */
 
+#include <math.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -38,18 +39,22 @@
 #define NK_LOVE_COMBOBOX_MAX_ITEMS 1024
 #define NK_LOVE_MAX_FONTS 1024
 #define NK_LOVE_MAX_RATIOS 1024
+#define NK_LOVE_GRADIENT_RESOLUTION 32
 
 static lua_State *L;
 static char *edit_buffer;
 static const char **combobox_items;
 static float *points;
 
-struct nk_love_context {
+static struct nk_love_context {
 	struct nk_context nkctx;
 	struct nk_user_font *fonts;
 	int font_count;
 	float *layout_ratios;
 	int layout_ratio_count;
+	float T[9];
+	float Ti[9];
+	int transform_allowed;
 } *context;
 
 static void nk_love_assert(int pass, const char *msg)
@@ -101,7 +106,15 @@ static struct nk_love_context *nk_love_checkcontext(int index)
 static void nk_love_assert_context(int index)
 {
 	struct nk_love_context *ctx = nk_love_checkcontext(index);
+	ctx->transform_allowed = 0;
 	nk_love_assert(ctx == context, "%s: UI calls must reside between ui:frameBegin and ui:frameEnd");
+}
+
+static void nk_love_assert_transform(void)
+{
+	struct nk_love_context *ctx = nk_love_checkcontext(1);
+	nk_love_assert(ctx == context && ctx->transform_allowed,
+		"%s: UI transformations must occur directly after ui:frameBegin");
 }
 
 static void nk_love_pushregistry(const char *name)
@@ -238,6 +251,21 @@ static struct nk_color nk_love_checkcolor(int index)
 	}
 	struct nk_color color = {r, g, b, a};
 	return color;
+}
+
+static void nk_love_color(int r, int g, int b, int a, char *color_string)
+{
+	r = NK_CLAMP(0, r, 255);
+	g = NK_CLAMP(0, g, 255);
+	b = NK_CLAMP(0, b, 255);
+	a = NK_CLAMP(0, a, 255);
+	const char *format_string;
+	if (a < 255) {
+		format_string = "#%02x%02x%02x%02x";
+	} else {
+		format_string = "#%02x%02x%02x";
+	}
+	sprintf(color_string, format_string, r, g, b, a);
 }
 
 static nk_flags nk_love_parse_window_flags(int flags_begin)
@@ -490,6 +518,15 @@ static int nk_love_checkboolean(lua_State *L, int index)
 	return lua_toboolean(L, index);
 }
 
+static void nk_love_transform(float *T, int *x, int *y)
+{
+	float rx, ry;
+	rx = *x * T[0] + *y * T[3] + T[6];
+	ry = *x * T[1] + *y * T[4] + T[7];
+	*x = (int) rx;
+	*y = (int) ry;
+}
+
 static void nk_love_configureGraphics(int line_thickness, struct nk_color col)
 {
 	lua_getglobal(L, "love");
@@ -530,10 +567,19 @@ static void nk_love_scissor(int x, int y, int w, int h)
 	lua_getglobal(L, "love");
 	lua_getfield(L, -1, "graphics");
 	lua_getfield(L, -1, "setScissor");
-	lua_pushnumber(L, x);
-	lua_pushnumber(L, y);
-	lua_pushnumber(L, w);
-	lua_pushnumber(L, h);
+	int x1 = x, y1 = y, x2 = x + w, y2 = y, x3 = x, y3 = y + h, x4 = x + w, y4 = y + h;
+	nk_love_transform(context->T, &x1, &y1);
+	nk_love_transform(context->T, &x2, &y2);
+	nk_love_transform(context->T, &x3, &y3);
+	nk_love_transform(context->T, &x4, &y4);
+	int left = NK_MIN(NK_MIN(x1, x2), NK_MIN(x3, x4));
+	int top = NK_MIN(NK_MIN(y1, y2), NK_MIN(y3, y4));
+	int right = NK_MAX(NK_MAX(x1, x2), NK_MAX(x3, x4));
+	int bottom = NK_MAX(NK_MAX(y1, y2), NK_MAX(y3, y4));
+	lua_pushnumber(L, left);
+	lua_pushnumber(L, top);
+	lua_pushnumber(L, right - left);
+	lua_pushnumber(L, bottom - top);
 	lua_call(L, 4, 0);
 	lua_pop(L, 2);
 }
@@ -727,59 +773,57 @@ static void interpolate_color(struct nk_color c1, struct nk_color c2,
 }
 
 static void nk_love_draw_rect_multi_color(int x, int y, unsigned int w,
-	unsigned int h, struct nk_color left, struct nk_color top,
-	struct nk_color right, struct nk_color bottom)
+	unsigned int h, struct nk_color top_left, struct nk_color top_right,
+	struct nk_color bottom_left, struct nk_color bottom_right)
 {
 	lua_getglobal(L, "love");
 	lua_getfield(L, -1, "graphics");
-
-	lua_getfield(L, -1, "push");
-	lua_pushstring(L, "all");
-	lua_call(L, 1, 0);
 	lua_getfield(L, -1, "setColor");
 	lua_pushnumber(L, 255);
 	lua_pushnumber(L, 255);
 	lua_pushnumber(L, 255);
 	lua_call(L, 3, 0);
-	lua_getfield(L, -1, "setPointSize");
-	lua_pushnumber(L, 1);
-	lua_call(L, 1, 0);
+	lua_pop(L, 2);
 
-	struct nk_color X1, X2, Y;
-	float fraction_x, fraction_y;
-	int i,j;
-
-	lua_getfield(L, -1, "points");
-	lua_createtable(L, w * h, 0);
-
-	for (j = 0; j < h; j++) {
-		fraction_y = ((float)j) / h;
-		for (i = 0; i < w; i++) {
-			fraction_x = ((float)i) / w;
-			interpolate_color(left, top, &X1, fraction_x);
-			interpolate_color(right, bottom, &X2, fraction_x);
-			interpolate_color(X1, X2, &Y, fraction_y);
-			lua_createtable(L, 6, 0);
-			lua_pushnumber(L, x + i);
-			lua_rawseti(L, -2, 1);
-			lua_pushnumber(L, y + j);
-			lua_rawseti(L, -2, 2);
-			lua_pushnumber(L, Y.r);
-			lua_rawseti(L, -2, 3);
-			lua_pushnumber(L, Y.g);
-			lua_rawseti(L, -2, 4);
-			lua_pushnumber(L, Y.b);
-			lua_rawseti(L, -2, 5);
-			lua_pushnumber(L, Y.a);
-			lua_rawseti(L, -2, 6);
-			lua_rawseti(L, -2, i + j * w + 1);
+	lua_getfield(L, LUA_REGISTRYINDEX, "nuklear");
+	lua_getfield(L, -1, "gradientData");
+	int row, col;
+	for (row = 0; row < NK_LOVE_GRADIENT_RESOLUTION; ++row) {
+		float row_ratio = (float) row / NK_LOVE_GRADIENT_RESOLUTION;
+		struct nk_color left, right;
+		interpolate_color(top_left, bottom_left, &left, row_ratio);
+		interpolate_color(top_right, bottom_right, &right, row_ratio);
+		for (col = 0; col < NK_LOVE_GRADIENT_RESOLUTION; ++col) {
+			float col_ratio = (float) col / NK_LOVE_GRADIENT_RESOLUTION;
+			struct nk_color pixel;
+			interpolate_color(left, right, &pixel, col_ratio);
+			lua_getfield(L, -1, "setPixel");
+			lua_pushvalue(L, -2);
+			lua_pushnumber(L, col);
+			lua_pushnumber(L, row);
+			lua_pushnumber(L, pixel.r);
+			lua_pushnumber(L, pixel.g);
+			lua_pushnumber(L, pixel.b);
+			lua_pushnumber(L, pixel.a);
+			lua_call(L, 7, 0);
 		}
 	}
-
+	lua_pop(L, 1);
+	lua_getfield(L, -1, "gradient");
+	lua_getfield(L, -1, "refresh");
+	lua_pushvalue(L, -2);
 	lua_call(L, 1, 0);
-	lua_getfield(L, -1, "pop");
-	lua_call(L, 0, 0);
+	lua_getglobal(L, "love");
+	lua_getfield(L, -1, "graphics");
+	lua_getfield(L, -1, "draw");
+	lua_replace(L, -5);
 	lua_pop(L, 2);
+	lua_pushnumber(L, x);
+	lua_pushnumber(L, y);
+	lua_pushnumber(L, 0);
+	lua_pushnumber(L, (float) w / NK_LOVE_GRADIENT_RESOLUTION);
+	lua_pushnumber(L, (float) h / NK_LOVE_GRADIENT_RESOLUTION);
+	lua_call(L, 6, 0);
 }
 
 static void nk_love_draw_image(int x, int y, unsigned int w, unsigned int h,
@@ -941,25 +985,29 @@ static int nk_love_keyevent(struct nk_context *ctx, const char *key,
 	return nk_love_is_active(ctx);
 }
 
-static int nk_love_clickevent(struct nk_context *ctx, int x, int y,
+static int nk_love_clickevent(struct nk_love_context *ctx, int x, int y,
 	int button, int istouch, int down)
 {
+	nk_love_transform(ctx->Ti, &x, &y);
+	struct nk_context *nkctx = &ctx->nkctx;
 	if (button == 1)
-		nk_input_button(ctx, NK_BUTTON_LEFT, x, y, down);
+		nk_input_button(nkctx, NK_BUTTON_LEFT, x, y, down);
 	else if (button == 3)
-		nk_input_button(ctx, NK_BUTTON_MIDDLE, x, y, down);
+		nk_input_button(nkctx, NK_BUTTON_MIDDLE, x, y, down);
 	else if (button == 2)
-		nk_input_button(ctx, NK_BUTTON_RIGHT, x, y, down);
+		nk_input_button(nkctx, NK_BUTTON_RIGHT, x, y, down);
 	else
 		return 0;
-	return nk_window_is_any_hovered(ctx);
+	return nk_window_is_any_hovered(nkctx);
 }
 
-static int nk_love_mousemoved_event(struct nk_context *ctx, int x, int y,
+static int nk_love_mousemoved_event(struct nk_love_context *ctx, int x, int y,
 	int dx, int dy, int istouch)
 {
-	nk_input_motion(ctx, x, y);
-	return nk_window_is_any_hovered(ctx);
+	nk_love_transform(ctx->Ti, &x, &y);
+	struct nk_context *nkctx = &ctx->nkctx;
+	nk_input_motion(nkctx, x, y);
+	return nk_window_is_any_hovered(nkctx);
 }
 
 static int nk_love_textinput_event(struct nk_context *ctx, const char *text)
@@ -984,7 +1032,7 @@ static int nk_love_wheelmoved_event(struct nk_context *ctx, int x, int y)
  * ===============================================================
  */
 
-static int nk_love_init(lua_State *L)
+static int nk_love_new_ui(lua_State *L)
 {
 	nk_love_assert_argc(lua_gettop(L) == 0);
 	lua_getfield(L, LUA_REGISTRYINDEX, "nuklear");
@@ -1022,7 +1070,7 @@ static int nk_love_init(lua_State *L)
 	return 1;
 }
 
-static int nk_love_shutdown(lua_State *luaState)
+static int nk_love_destroy(lua_State *luaState)
 {
 	nk_love_assert_argc(lua_gettop(L) == 1);
 	struct nk_love_context *ctx = nk_love_checkcontext(1);
@@ -1062,7 +1110,7 @@ static int nk_love_keyreleased(lua_State *L)
 static int nk_love_mousepressed(lua_State *L)
 {
 	nk_love_assert_argc(lua_gettop(L) == 5);
-	struct nk_context *ctx = &nk_love_checkcontext(1)->nkctx;
+	struct nk_love_context *ctx = nk_love_checkcontext(1);
 	int x = luaL_checkint(L, 2);
 	int y = luaL_checkint(L, 3);
 	int button = luaL_checkint(L, 4);
@@ -1075,7 +1123,7 @@ static int nk_love_mousepressed(lua_State *L)
 static int nk_love_mousereleased(lua_State *L)
 {
 	nk_love_assert_argc(lua_gettop(L) == 5);
-	struct nk_context *ctx = &nk_love_checkcontext(1)->nkctx;
+	struct nk_love_context *ctx = nk_love_checkcontext(1);
 	int x = luaL_checkint(L, 2);
 	int y = luaL_checkint(L, 3);
 	int button = luaL_checkint(L, 4);
@@ -1088,7 +1136,7 @@ static int nk_love_mousereleased(lua_State *L)
 static int nk_love_mousemoved(lua_State *L)
 {
 	nk_love_assert_argc(lua_gettop(L) == 6);
-	struct nk_context *ctx = &nk_love_checkcontext(1)->nkctx;
+	struct nk_love_context *ctx = nk_love_checkcontext(1);
 	int x = luaL_checkint(L, 2);
 	int y = luaL_checkint(L, 3);
 	int dx = luaL_checkint(L, 4);
@@ -1135,6 +1183,21 @@ static int nk_love_draw(lua_State *L)
 	lua_getfield(L, -1, "origin");
 	lua_call(L, 0, 0);
 
+	nk_love_pushregistry("transform");
+	size_t transform_count = lua_objlen(L, -1);
+	size_t i, j;
+	for (i = 1; i <= transform_count; ++i) {
+		lua_rawgeti(L, -1, i);
+		lua_rawgeti(L, -1, 1);
+		lua_gettable(L, -4);
+		size_t transform_size = lua_objlen(L, -2);
+		for (j = 2; j <= transform_size; ++j)
+			lua_rawgeti(L, -j, j);
+		lua_call(L, transform_size - 1, 0);
+		lua_pop(L, 1);
+	}
+	lua_pop(L, 1);
+
 	const struct nk_command *cmd;
 	nk_foreach(cmd, &context->nkctx)
 	{
@@ -1167,7 +1230,7 @@ static int nk_love_draw(lua_State *L)
 			nk_love_draw_circle(c->x, c->y, c->w, c->h, -1, c->color);
 		} break;
 		case NK_COMMAND_TRIANGLE: {
-			const struct nk_command_triangle*t = (const struct nk_command_triangle*)cmd;
+			const struct nk_command_triangle *t = (const struct nk_command_triangle*)cmd;
 			nk_love_draw_triangle(t->a.x, t->a.y, t->b.x, t->b.y,
 				t->c.x, t->c.y, t->line_thickness, t->color);
 		} break;
@@ -1200,7 +1263,7 @@ static int nk_love_draw(lua_State *L)
 		} break;
 		case NK_COMMAND_RECT_MULTI_COLOR: {
 			const struct nk_command_rect_multi_color *r = (const struct nk_command_rect_multi_color *)cmd;
-			nk_love_draw_rect_multi_color(r->x, r->y, r->w, r->h, r->left, r->top, r->right, r->bottom);
+			nk_love_draw_rect_multi_color(r->x, r->y, r->w, r->h, r->left, r->top, r->bottom, r->right);
 		} break;
 		case NK_COMMAND_IMAGE: {
 			const struct nk_command_image *i = (const struct nk_command_image *)cmd;
@@ -1223,6 +1286,7 @@ static int nk_love_draw(lua_State *L)
 	lua_call(L, 0, 0);
 	lua_pop(L, 2);
 	nk_clear(&context->nkctx);
+	context = NULL;
 	return 0;
 }
 
@@ -1358,6 +1422,7 @@ static void nk_love_preserve_all(void)
 static int nk_love_frame_begin(lua_State *L)
 {
 	nk_love_assert_argc(lua_gettop(L) == 1);
+	nk_love_assert(context == NULL, "%s: missing ui:frameEnd for previous frame");
 	context = nk_love_checkcontext(1);
 	nk_input_end(&context->nkctx);
 	lua_getglobal(L, "love");
@@ -1390,7 +1455,13 @@ static int nk_love_frame_begin(lua_State *L)
 		lua_pop(L, 1);
 		context->nkctx.stacks.fonts.elements[i].old_value = &context->fonts[context->font_count++];
 	}
+	lua_pop(L, 1);
 	context->layout_ratio_count = 0;
+	for (i = 0; i < 9; ++i)
+		context->T[i] = context->Ti[i] = (i % 3 == i / 3);
+	context->transform_allowed = 1;
+	lua_newtable(L);
+	lua_setfield(L, -2, "transform");
 	return 0;
 }
 
@@ -1400,6 +1471,183 @@ static int nk_love_frame_end(lua_State *L)
 	nk_love_assert_context(1);
 	nk_input_begin(&context->nkctx);
 	context = NULL;
+	return 0;
+}
+
+/*
+cos -sin  0 |  cos  sin  0
+sin  cos  0 | -sin  cos  0
+0    0    1 |  0    0    1
+*/
+static int nk_love_rotate(lua_State *L)
+{
+	nk_love_assert_argc(lua_gettop(L) == 2);
+	nk_love_assert_transform();
+	float angle = luaL_checknumber(L, 2);
+	nk_love_pushregistry("transform");
+	size_t len = lua_objlen(L, -1);
+	lua_newtable(L);
+	lua_pushstring(L, "rotate");
+	lua_rawseti(L, -2, 1);
+	lua_pushnumber(L, angle);
+	lua_rawseti(L, -2, 2);
+	lua_rawseti(L, -2, len + 1);
+	float *T = context->T, *Ti = context->Ti;
+	float c = cosf(angle);
+	float s = sinf(angle);
+	int i;
+	float R[9];
+	R[0] = T[0] * c + T[3] * s;
+	R[1] = T[1] * c + T[4] * s;
+	R[2] = T[2] * c + T[5] * s;
+	R[3] = T[0] * -s + T[3] * c;
+	R[4] = T[1] * -s + T[4] * c;
+	R[5] = T[2] * -s + T[5] * c;
+	R[6] = T[6];
+	R[7] = T[7];
+	R[8] = T[8];
+	for (i = 0; i < 9; ++i)
+		T[i] = R[i];
+	R[0] = c * Ti[0] + s * Ti[1];
+	R[1] = -s * Ti[0] + c * Ti[1];
+	R[2] = Ti[2];
+	R[3] = c * Ti[3] + s * Ti[4];
+	R[4] = -s * Ti[3] + c * Ti[4];
+	R[5] = Ti[5];
+	R[6] = c * Ti[6] + s * Ti[7];
+	R[7] = -s * Ti[6] + c * Ti[7];
+	R[8] = Ti[8];
+	for (i = 0; i < 9; ++i)
+		Ti[i] = R[i];
+	return 0;
+}
+
+/*
+sx 0  0 | 1/sx 0    0
+0  sy 0 | 0    1/sy 0
+0  0  1 | 0    0    1
+*/
+static int nk_love_scale(lua_State *L)
+{
+	nk_love_assert_argc(lua_gettop(L) >= 2 && lua_gettop(L) <= 3);
+	nk_love_assert_transform();
+	float sx = luaL_checknumber(L, 2);
+	float sy = luaL_optnumber(L, 3, sx);
+	nk_love_pushregistry("transform");
+	size_t len = lua_objlen(L, -1);
+	lua_newtable(L);
+	lua_pushstring(L, "scale");
+	lua_rawseti(L, -2, 1);
+	lua_pushnumber(L, sx);
+	lua_rawseti(L, -2, 2);
+	lua_pushnumber(L, sy);
+	lua_rawseti(L, -2, 3);
+	lua_rawseti(L, -2, len + 1);
+	float *T = context->T, *Ti = context->Ti;
+	T[0] *= sx;
+	T[1] *= sx;
+	T[2] *= sx;
+	T[3] *= sy;
+	T[4] *= sy;
+	T[5] *= sy;
+	Ti[0] /= sx;
+	Ti[1] /= sy;
+	Ti[3] /= sx;
+	Ti[4] /= sy;
+	Ti[6] /= sx;
+	Ti[7] /= sy;
+	return 0;
+}
+
+/*
+1  kx 0 | 1/(1-kx*ky)  kx/(kx*ky-1) 0
+ky 1  0 | ky/(kx*ky-1) 1/(1-kx*ky)  0
+0  0  1 | 0            0            1
+*/
+static int nk_love_shear(lua_State *L)
+{
+	nk_love_assert_argc(lua_gettop(L) == 3);
+	nk_love_assert_transform();
+	float kx = luaL_checknumber(L, 2);
+	float ky = luaL_checknumber(L, 3);
+	nk_love_pushregistry("transform");
+	size_t len = lua_objlen(L, -1);
+	lua_newtable(L);
+	lua_pushstring(L, "shear");
+	lua_rawseti(L, -2, 1);
+	lua_pushnumber(L, kx);
+	lua_rawseti(L, -2, 2);
+	lua_pushnumber(L, ky);
+	lua_rawseti(L, -2, 3);
+	lua_rawseti(L, -2, len + 1);
+	float *T = context->T, *Ti = context->Ti;
+	float R[9];
+	R[0] = T[0] + T[3] * ky;
+	R[1] = T[1] + T[4] * ky;
+	R[2] = T[2] + T[5] * ky;
+	R[3] = T[0] * kx + T[3];
+	R[4] = T[1] * kx + T[4];
+	R[5] = T[2] * kx + T[5];
+	R[6] = T[6];
+	R[7] = T[7];
+	R[8] = T[8];
+	int i;
+	for (i = 0; i < 9; ++i)
+		T[i] = R[i];
+	float a = 1.0f / (1 - kx * ky);
+	float b = 1.0f / (kx * ky - 1);
+	R[0] = a * Ti[0] + kx * b * Ti[1];
+	R[1] = ky * b * Ti[0] + a * Ti[1];
+	R[2] = Ti[2];
+	R[3] = a * Ti[3] + kx * b * Ti[4];
+	R[4] = ky * b * Ti[3] + a * Ti[4];
+	R[5] = Ti[5];
+	R[6] = a * Ti[6] + kx * b * Ti[7];
+	R[7] = ky * b * Ti[6] + a * Ti[7];
+	R[8] = Ti[8];
+	for (i = 0; i < 9; ++i)
+		Ti[i] = R[i];
+	return 0;
+}
+
+/*
+1 0 dx | 1 0 -dx
+0 1 dy | 0 1 -dy
+0 0 1  | 0 0  1
+*/
+static int nk_love_translate(lua_State *L)
+{
+	nk_love_assert_argc(lua_gettop(L) == 3);
+	nk_love_assert_transform();
+	float dx = luaL_checknumber(L, 2);
+	float dy = luaL_checknumber(L, 3);
+	nk_love_pushregistry("transform");
+	size_t len = lua_objlen(L, -1);
+	lua_newtable(L);
+	lua_pushstring(L, "translate");
+	lua_rawseti(L, -2, 1);
+	lua_pushnumber(L, dx);
+	lua_rawseti(L, -2, 2);
+	lua_pushnumber(L, dy);
+	lua_rawseti(L, -2, 3);
+	lua_rawseti(L, -2, len + 1);
+	float *T = context->T, *Ti = context->Ti;
+	float R[9];
+	T[6] += T[0] * dx + T[3] * dy;
+	T[7] += T[1] * dx + T[4] * dy;
+	T[8] += T[2] * dx + T[5] * dy;
+	R[0] = Ti[0] - dx * Ti[2];
+	R[1] = Ti[1] - dy * Ti[2];
+	R[2] = Ti[2];
+	R[3] = Ti[3] - dx * Ti[5];
+	R[4] = Ti[4] - dy * Ti[5];
+	R[5] = Ti[5];
+	R[6] = Ti[6] - dx * Ti[8];
+	R[7] = Ti[7] - dy * Ti[8];
+	R[8] = Ti[8];
+	int i;
+	for (i = 0; i < 9; ++i)
+		Ti[i] = R[i];
 	return 0;
 }
 
@@ -1875,21 +2123,6 @@ static int nk_love_tree_pop(lua_State *L)
 	nk_love_assert_context(1);
 	nk_tree_pop(&context->nkctx);
 	return 0;
-}
-
-static void nk_love_color(int r, int g, int b, int a, char *color_string)
-{
-	r = NK_CLAMP(0, r, 255);
-	g = NK_CLAMP(0, g, 255);
-	b = NK_CLAMP(0, b, 255);
-	a = NK_CLAMP(0, a, 255);
-	const char *format_string;
-	if (a < 255) {
-		format_string = "#%02x%02x%02x%02x";
-	} else {
-		format_string = "#%02x%02x%02x";
-	}
-	sprintf(color_string, format_string, r, g, b, a);
 }
 
 static int nk_love_color_rgba(lua_State *L)
@@ -3606,6 +3839,23 @@ LUALIB_API int luaopen_nuklear(lua_State *luaState)
 	lua_newtable(L);
 	lua_pushvalue(L, -1);
 	lua_setfield(L, LUA_REGISTRYINDEX, "nuklear");
+
+	lua_getglobal(L, "love");
+	nk_love_assert(lua_istable(L, -1), "LOVE-Nuklear requires LOVE environment");
+	lua_getfield(L, -1, "image");
+	lua_getfield(L, -1, "newImageData");
+	lua_pushnumber(L, NK_LOVE_GRADIENT_RESOLUTION);
+	lua_pushnumber(L, NK_LOVE_GRADIENT_RESOLUTION);
+	lua_call(L, 2, 1);
+	lua_getfield(L, -3, "graphics");
+	lua_getfield(L, -1, "newImage");
+	lua_pushvalue(L, -3);
+	lua_call(L, 1, 1);
+	lua_setfield(L, -6, "gradient");
+	lua_pop(L, 1);
+	lua_setfield(L, -4, "gradientData");
+	lua_pop(L, 2);
+
 	lua_newtable(L);
 	lua_pushvalue(L, -1);
 	lua_setfield(L, -3, "methods");
@@ -3622,6 +3872,11 @@ LUALIB_API int luaopen_nuklear(lua_State *luaState)
 
 	NK_LOVE_REGISTER("frameBegin", nk_love_frame_begin);
 	NK_LOVE_REGISTER("frameEnd", nk_love_frame_end);
+
+	NK_LOVE_REGISTER("rotate", nk_love_rotate);
+	NK_LOVE_REGISTER("scale", nk_love_scale);
+	NK_LOVE_REGISTER("shear", nk_love_shear);
+	NK_LOVE_REGISTER("translate", nk_love_translate);
 
 	NK_LOVE_REGISTER("windowBegin", nk_love_window_begin);
 	NK_LOVE_REGISTER("windowEnd", nk_love_window_end);
@@ -3741,12 +3996,12 @@ LUALIB_API int luaopen_nuklear(lua_State *luaState)
 	lua_newtable(L);
 	lua_pushvalue(L, -1);
 	lua_setfield(L, -4, "metatable");
-	NK_LOVE_REGISTER("__gc", nk_love_shutdown);
+	NK_LOVE_REGISTER("__gc", nk_love_destroy);
 	lua_pushvalue(L, -2);
 	lua_setfield(L, -2, "__index");
 
 	lua_newtable(L);
-	NK_LOVE_REGISTER("init", nk_love_init);
+	NK_LOVE_REGISTER("newUI", nk_love_new_ui);
 	NK_LOVE_REGISTER("colorRGBA", nk_love_color_rgba);
 	NK_LOVE_REGISTER("colorHSVA", nk_love_color_hsva);
 	NK_LOVE_REGISTER("colorParseRGBA", nk_love_color_parse_rgba);

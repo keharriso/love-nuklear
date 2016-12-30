@@ -1,3 +1,5 @@
+-- Basic skinning example.
+
 local windowHeader = love.graphics.newImage 'skin/window_header.png'
 local checkboxSkin = love.graphics.newImage 'skin/checkbox_false.png'
 local checkboxCheck = love.graphics.newImage 'skin/checkbox_true.png'

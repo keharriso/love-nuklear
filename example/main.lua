@@ -7,52 +7,61 @@ local draw = require 'draw'
 local overview = require 'overview'
 local style = require 'style'
 local skin = require 'skin'
+local transform = require 'transform'
 
-local ui
+local ui1, ui2
 
 function love.load()
-	ui = nuklear.init()
+	ui1, ui2 = nuklear.newUI(), nuklear.newUI()
 end
 
 function love.update(dt)
-	ui:frameBegin()
-		calculator(ui)
-		style(ui)
-		overview(ui)
-		draw(ui)
-		skin(ui)
-	ui:frameEnd()
+	ui1:frameBegin()
+		calculator(ui1)
+		style(ui1)
+		overview(ui1)
+		draw(ui1)
+		skin(ui1)
+	ui1:frameEnd()
+	ui2:frameBegin()
+		transform(ui2)
+	ui2:frameEnd()
 end
 
 function love.draw()
-	ui:draw()
+	ui1:draw()
+	ui2:draw()
 	love.graphics.print("Current FPS: "..tostring(love.timer.getFPS( )), 10, 10)
 end
 
+local function input(name, ...)
+	return ui2[name](ui2, ...) or ui1[name](ui1, ...)
+end
+
 function love.keypressed(key, scancode, isrepeat)
-	ui:keypressed(key, scancode, isrepeat)
+	input('keypressed', key, scancode, isrepeat)
 end
 
 function love.keyreleased(key, scancode)
-	ui:keyreleased(key, scancode)
+	input('keyreleased', key, scancode)
 end
 
 function love.mousepressed(x, y, button, istouch)
-	ui:mousepressed(x, y, button, istouch)
+	input('mousepressed', x, y, button, istouch)
 end
 
 function love.mousereleased(x, y, button, istouch)
-	ui:mousereleased(x, y, button, istouch)
+	input('mousereleased', x, y, button, istouch)
 end
 
 function love.mousemoved(x, y, dx, dy, istouch)
-	ui:mousemoved(x, y, dx, dy, istouch)
+	input('mousemoved', x, y, dx, dy, istouch)
 end
 
 function love.textinput(text)
-	ui:textinput(text)
+	input('textinput', text)
 end
 
 function love.wheelmoved(x, y)
-	ui:wheelmoved(x, y)
+	input('wheelmoved', x, y)
 end

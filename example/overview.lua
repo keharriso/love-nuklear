@@ -24,7 +24,7 @@ return function (ui)
 			ui:menuEnd()
 		end
 		ui:menubarEnd()
-		ui:layoutRow('dynamic', 400, 3)
+		ui:layoutRow('dynamic', 375, 3)
 		if ui:groupBegin('Group 1', 'border') then
 			ui:layoutRow('dynamic', 30, 1)
 			ui:label('Left label')
