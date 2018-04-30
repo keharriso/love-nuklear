@@ -59,10 +59,10 @@ static void nk_love_configureGraphics(int line_thickness, struct nk_color col)
 		lua_call(L, 1, 0);
 	}
 	lua_getfield(L, -1, "setColor");
-	lua_pushnumber(L, col.r);
-	lua_pushnumber(L, col.g);
-	lua_pushnumber(L, col.b);
-	lua_pushnumber(L, col.a);
+	lua_pushnumber(L, col.r / 255.0);
+	lua_pushnumber(L, col.g / 255.0);
+	lua_pushnumber(L, col.b / 255.0);
+	lua_pushnumber(L, col.a / 255.0);
 	lua_call(L, 4, 0);
 }
 
@@ -76,10 +76,10 @@ static void nk_love_getGraphics(float *line_thickness, struct nk_color *color)
 	lua_pop(L, 1);
 	lua_getfield(L, -1, "getColor");
 	lua_call(L, 0, 4);
-	color->r = lua_tointeger(L, -4);
-	color->g = lua_tointeger(L, -3);
-	color->b = lua_tointeger(L, -2);
-	color->a = lua_tointeger(L, -1);
+	color->r = lua_tointeger(L, -4) * 255.0;
+	color->g = lua_tointeger(L, -3) * 255.0;
+	color->b = lua_tointeger(L, -2) * 255.0;
+	color->a = lua_tointeger(L, -1) * 255.0;
 	lua_pop(L, 6);
 }
 
@@ -254,10 +254,10 @@ static void nk_love_draw_text(int fontref, struct nk_color cbg,
 	lua_getfield(L, -1, "graphics");
 
 	lua_getfield(L, -1, "setColor");
-	lua_pushnumber(L, cbg.r);
-	lua_pushnumber(L, cbg.g);
-	lua_pushnumber(L, cbg.b);
-	lua_pushnumber(L, cbg.a);
+	lua_pushnumber(L, cbg.r / 255.0);
+	lua_pushnumber(L, cbg.g / 255.0);
+	lua_pushnumber(L, cbg.b / 255.0);
+	lua_pushnumber(L, cbg.a / 255.0);
 	lua_call(L, 4, 0);
 
 	lua_getfield(L, -1, "rectangle");
@@ -269,10 +269,10 @@ static void nk_love_draw_text(int fontref, struct nk_color cbg,
 	lua_call(L, 5, 0);
 
 	lua_getfield(L, -1, "setColor");
-	lua_pushnumber(L, cfg.r);
-	lua_pushnumber(L, cfg.g);
-	lua_pushnumber(L, cfg.b);
-	lua_pushnumber(L, cfg.a);
+	lua_pushnumber(L, cfg.r / 255.0);
+	lua_pushnumber(L, cfg.g / 255.0);
+	lua_pushnumber(L, cfg.b / 255.0);
+	lua_pushnumber(L, cfg.a / 255.0);
 	lua_call(L, 4, 0);
 
 	lua_getfield(L, -1, "setFont");
@@ -317,9 +317,9 @@ static void nk_love_draw_rect_multi_color(int x, int y, unsigned int w,
 	lua_pushstring(L, "all");
 	lua_call(L, 1, 0);
 	lua_getfield(L, -1, "setColor");
-	lua_pushnumber(L, 255);
-	lua_pushnumber(L, 255);
-	lua_pushnumber(L, 255);
+	lua_pushnumber(L, 1.0);
+	lua_pushnumber(L, 1.0);
+	lua_pushnumber(L, 1.0);
 	lua_call(L, 3, 0);
 	lua_getfield(L, -1, "setPointSize");
 	lua_pushnumber(L, 1);
