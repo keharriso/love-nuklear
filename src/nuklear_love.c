@@ -45,7 +45,6 @@ static struct nk_user_font *fonts;
 static int font_count;
 static char *edit_buffer;
 static const char **combobox_items;
-static struct nk_cursor cursors[NK_CURSOR_COUNT];
 static float *floats;
 static int layout_ratio_count;
 
@@ -359,28 +358,6 @@ static void nk_love_draw_rect_multi_color(int x, int y, unsigned int w,
 
 	lua_call(L, 1, 0);
 	lua_getfield(L, -1, "pop");
-	lua_call(L, 0, 0);
-	lua_pop(L, 2);
-}
-
-static void nk_love_clear(struct nk_color col)
-{
-	lua_getglobal(L, "love");
-	lua_getfield(L, -1, "graphics");
-	lua_getfield(L, -1, "clear");
-	lua_pushnumber(L, col.r / 255.0);
-	lua_pushnumber(L, col.g / 255.0);
-	lua_pushnumber(L, col.b / 255.0);
-	lua_pushnumber(L, col.a / 255.0);
-	lua_call(L, 4, 0);
-	lua_pop(L, 2);
-}
-
-static void nk_love_blit()
-{
-	lua_getglobal(L, "love");
-	lua_getfield(L, -1, "graphics");
-	lua_getfield(L, -1, "present");
 	lua_call(L, 0, 0);
 	lua_pop(L, 2);
 }
@@ -3437,12 +3414,12 @@ static int nk_love_input_is_mouse(int down)
 
 static int nk_love_input_is_mouse_pressed(lua_State *L)
 {
-	nk_love_input_is_mouse(nk_true);
+	return nk_love_input_is_mouse(nk_true);
 }
 
 static int nk_love_input_is_mouse_released(lua_State *L)
 {
-	nk_love_input_is_mouse(nk_false);
+	return nk_love_input_is_mouse(nk_false);
 }
 
 static int nk_love_input_was_hovered(lua_State *L)
