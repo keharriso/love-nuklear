@@ -13,7 +13,7 @@ local nuklear = require 'nuklear'
 local ui
 
 function love.load()
-	ui = nuklear.init()
+	ui = nuklear.newUI()
 end
 
 local combo = {value = 1, items = {'A', 'B', 'C'}}
