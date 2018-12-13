@@ -566,6 +566,14 @@ static void nk_love_getGraphics(float *line_thickness, struct nk_color *color)
 	lua_pop(L, 6);
 }
 
+/*
+ * ===============================================================
+ *
+ *                          GRAPHICS
+ *
+ * ===============================================================
+ */
+
 static void nk_love_scissor(int x, int y, int w, int h)
 {
 	lua_getglobal(L, "love");
@@ -874,6 +882,14 @@ static void nk_love_draw_arc(int cx, int cy, unsigned int r,
 	lua_call(L, 6, 0);
 	lua_pop(L, 1);
 }
+
+/*
+ * ===============================================================
+ *
+ *                            INPUT
+ *
+ * ===============================================================
+ */
 
 static void nk_love_clipboard_paste(nk_handle usr, struct nk_text_edit *edit)
 {
@@ -1484,6 +1500,14 @@ static int nk_love_frame_end(lua_State *L)
 }
 
 /*
+ * ===============================================================
+ *
+ *                          TRANSFORM
+ *
+ * ===============================================================
+ */
+
+/*
 cos -sin  0 |  cos  sin  0
 sin  cos  0 | -sin  cos  0
 0    0    1 |  0    0    1
@@ -1659,6 +1683,14 @@ static int nk_love_translate(lua_State *L)
 		Ti[i] = R[i];
 	return 0;
 }
+
+/*
+ * ===============================================================
+ *
+ *                          WINDOW
+ *
+ * ===============================================================
+ */
 
 static int nk_love_window_begin(lua_State *L)
 {
@@ -1895,6 +1927,14 @@ static int nk_love_window_hide(lua_State *L)
 	return 0;
 }
 
+/*
+ * ===============================================================
+ *
+ *                           LAYOUT
+ *
+ * ===============================================================
+ */
+
 static int nk_love_layout_row(lua_State *L)
 {
 	int argc = lua_gettop(L);
@@ -2080,6 +2120,14 @@ static int nk_love_layout_ratio_from_pixel(lua_State *L)
 	lua_pushnumber(L, ratio);
 	return 1;
 }
+
+/*
+ * ===============================================================
+ *
+ *                          WIDGETS
+ *
+ * ===============================================================
+ */
 
 static int nk_love_group_begin(lua_State *L)
 {
@@ -2963,6 +3011,14 @@ static int nk_love_menu_end(lua_State *L)
 	return 0;
 }
 
+/*
+ * ===============================================================
+ *
+ *                            STYLE
+ *
+ * ===============================================================
+ */
+
 static int nk_love_style_default(lua_State *L)
 {
 	nk_love_assert_argc(lua_gettop(L) == 1);
@@ -3484,6 +3540,14 @@ static int nk_love_style_pop(lua_State *L)
 	return 0;
 }
 
+/*
+ * ===============================================================
+ *
+ *                        CUSTOM WIDGETS
+ *
+ * ===============================================================
+ */
+
 static int nk_love_widget_bounds(lua_State *L)
 {
 	nk_love_assert_argc(lua_gettop(L) == 1);
@@ -3838,6 +3902,14 @@ static int nk_love_input_is_hovered(lua_State *L)
 	lua_pushboolean(L, is_hovered);
 	return 1;
 }
+
+/*
+ * ===============================================================
+ *
+ *                          REGISTER
+ *
+ * ===============================================================
+ */
 
 #define NK_LOVE_REGISTER(name, func) \
 	lua_pushcfunction(L, func); \
