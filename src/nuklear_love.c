@@ -3793,12 +3793,12 @@ static int nk_love_input_is_mouse(int down)
 
 static int nk_love_input_is_mouse_pressed(lua_State *L)
 {
-	nk_love_input_is_mouse(nk_true);
+	return nk_love_input_is_mouse(nk_true);
 }
 
 static int nk_love_input_is_mouse_released(lua_State *L)
 {
-	nk_love_input_is_mouse(nk_false);
+	return nk_love_input_is_mouse(nk_false);
 }
 
 static int nk_love_input_was_hovered(lua_State *L)
