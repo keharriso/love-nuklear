@@ -531,6 +531,14 @@ static void nk_love_transform(float *T, int *x, int *y)
 	*y = (int) ry;
 }
 
+/*
+ * ===============================================================
+ *
+ *                          GRAPHICS
+ *
+ * ===============================================================
+ */
+
 static void nk_love_configureGraphics(int line_thickness, struct nk_color col)
 {
 	lua_getglobal(L, "love");
@@ -566,14 +574,6 @@ static void nk_love_getGraphics(float *line_thickness, struct nk_color *color)
 	lua_pop(L, 6);
 }
 
-/*
- * ===============================================================
- *
- *                          GRAPHICS
- *
- * ===============================================================
- */
-
 static void nk_love_scissor(int x, int y, int w, int h)
 {
 	lua_getglobal(L, "love");
@@ -601,10 +601,10 @@ static void nk_love_draw_line(int x0, int y0, int x1, int y1,
 {
 	nk_love_configureGraphics(line_thickness, col);
 	lua_getfield(L, -1, "line");
-	lua_pushnumber(L, x0);
-	lua_pushnumber(L, y0);
-	lua_pushnumber(L, x1);
-	lua_pushnumber(L, y1);
+	lua_pushnumber(L, x0 + 0.5);
+	lua_pushnumber(L, y0 + 0.5);
+	lua_pushnumber(L, x1 + 0.5);
+	lua_pushnumber(L, y1 + 0.5);
 	lua_call(L, 4, 0);
 	lua_pop(L, 1);
 }
@@ -619,8 +619,8 @@ static void nk_love_draw_rect(int x, int y,	unsigned int w,
 		lua_pushstring(L, "line");
 	else
 		lua_pushstring(L, "fill");
-	lua_pushnumber(L, x);
-	lua_pushnumber(L, y);
+	lua_pushnumber(L, x + 0.5);
+	lua_pushnumber(L, y + 0.5);
 	lua_pushnumber(L, w);
 	lua_pushnumber(L, h);
 	lua_pushnumber(L, r);
@@ -638,12 +638,12 @@ static void nk_love_draw_triangle(int x0, int y0, int x1, int y1,
 		lua_pushstring(L, "line");
 	else
 		lua_pushstring(L, "fill");
-	lua_pushnumber(L, x0);
-	lua_pushnumber(L, y0);
-	lua_pushnumber(L, x1);
-	lua_pushnumber(L, y1);
-	lua_pushnumber(L, x2);
-	lua_pushnumber(L, y2);
+	lua_pushnumber(L, x0 + 0.5);
+	lua_pushnumber(L, y0 + 0.5);
+	lua_pushnumber(L, x1 + 0.5);
+	lua_pushnumber(L, y1 + 0.5);
+	lua_pushnumber(L, x2 + 0.5);
+	lua_pushnumber(L, y2 + 0.5);
 	lua_call(L, 7, 0);
 	lua_pop(L, 1);
 }
@@ -659,8 +659,8 @@ static void nk_love_draw_polygon(const struct nk_vec2i *pnts, int count,
 		lua_pushstring(L, "fill");
 	int i;
 	for (i = 0; (i < count) && (i < NK_LOVE_MAX_POINTS); ++i) {
-		lua_pushnumber(L, pnts[i].x);
-		lua_pushnumber(L, pnts[i].y);
+		lua_pushnumber(L, pnts[i].x + 0.5);
+		lua_pushnumber(L, pnts[i].y + 0.5);
 	}
 	lua_call(L, 1 + count * 2, 0);
 	lua_pop(L, 1);
@@ -673,8 +673,8 @@ static void nk_love_draw_polyline(const struct nk_vec2i *pnts,
 	lua_getfield(L, -1, "line");
 	int i;
 	for (i = 0; (i < count) && (i < NK_LOVE_MAX_POINTS); ++i) {
-		lua_pushnumber(L, pnts[i].x);
-		lua_pushnumber(L, pnts[i].y);
+		lua_pushnumber(L, pnts[i].x + 0.5);
+		lua_pushnumber(L, pnts[i].y + 0.5);
 	}
 	lua_call(L, count * 2, 0);
 	lua_pop(L, 1);
