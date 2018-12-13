@@ -538,10 +538,10 @@ static void nk_love_configureGraphics(int line_thickness, struct nk_color col)
 		lua_call(L, 1, 0);
 	}
 	lua_getfield(L, -1, "setColor");
-	lua_pushnumber(L, col.r);
-	lua_pushnumber(L, col.g);
-	lua_pushnumber(L, col.b);
-	lua_pushnumber(L, col.a);
+	lua_pushnumber(L, col.r / 255.0);
+	lua_pushnumber(L, col.g / 255.0);
+	lua_pushnumber(L, col.b / 255.0);
+	lua_pushnumber(L, col.a / 255.0);
 	lua_call(L, 4, 0);
 }
 
@@ -555,10 +555,10 @@ static void nk_love_getGraphics(float *line_thickness, struct nk_color *color)
 	lua_pop(L, 1);
 	lua_getfield(L, -1, "getColor");
 	lua_call(L, 0, 4);
-	color->r = lua_tointeger(L, -4);
-	color->g = lua_tointeger(L, -3);
-	color->b = lua_tointeger(L, -2);
-	color->a = lua_tointeger(L, -1);
+	color->r = (int) (lua_tonumber(L, -4) * 255.0);
+	color->g = (int) (lua_tonumber(L, -3) * 255.0);
+	color->b = (int) (lua_tonumber(L, -2) * 255.0);
+	color->a = (int) (lua_tonumber(L, -1) * 255.0);
 	lua_pop(L, 6);
 }
 
@@ -722,10 +722,10 @@ static void nk_love_draw_text(int fontref, struct nk_color cbg,
 	lua_getfield(L, -1, "graphics");
 
 	lua_getfield(L, -1, "setColor");
-	lua_pushnumber(L, cbg.r);
-	lua_pushnumber(L, cbg.g);
-	lua_pushnumber(L, cbg.b);
-	lua_pushnumber(L, cbg.a);
+	lua_pushnumber(L, cbg.r / 255.0);
+	lua_pushnumber(L, cbg.g / 255.0);
+	lua_pushnumber(L, cbg.b / 255.0);
+	lua_pushnumber(L, cbg.a / 255.0);
 	lua_call(L, 4, 0);
 
 	lua_getfield(L, -1, "rectangle");
@@ -737,10 +737,10 @@ static void nk_love_draw_text(int fontref, struct nk_color cbg,
 	lua_call(L, 5, 0);
 
 	lua_getfield(L, -1, "setColor");
-	lua_pushnumber(L, cfg.r);
-	lua_pushnumber(L, cfg.g);
-	lua_pushnumber(L, cfg.b);
-	lua_pushnumber(L, cfg.a);
+	lua_pushnumber(L, cfg.r / 255.0);
+	lua_pushnumber(L, cfg.g / 255.0);
+	lua_pushnumber(L, cfg.b / 255.0);
+	lua_pushnumber(L, cfg.a / 255.0);
 	lua_call(L, 4, 0);
 
 	lua_getfield(L, -1, "setFont");
@@ -773,57 +773,59 @@ static void interpolate_color(struct nk_color c1, struct nk_color c2,
 }
 
 static void nk_love_draw_rect_multi_color(int x, int y, unsigned int w,
-	unsigned int h, struct nk_color top_left, struct nk_color top_right,
-	struct nk_color bottom_left, struct nk_color bottom_right)
+	unsigned int h, struct nk_color left, struct nk_color top,
+	struct nk_color right, struct nk_color bottom)
 {
 	lua_getglobal(L, "love");
 	lua_getfield(L, -1, "graphics");
-	lua_getfield(L, -1, "setColor");
-	lua_pushnumber(L, 255);
-	lua_pushnumber(L, 255);
-	lua_pushnumber(L, 255);
-	lua_call(L, 3, 0);
-	lua_pop(L, 2);
 
-	lua_getfield(L, LUA_REGISTRYINDEX, "nuklear");
-	lua_getfield(L, -1, "gradientData");
-	int row, col;
-	for (row = 0; row < NK_LOVE_GRADIENT_RESOLUTION; ++row) {
-		float row_ratio = (float) row / NK_LOVE_GRADIENT_RESOLUTION;
-		struct nk_color left, right;
-		interpolate_color(top_left, bottom_left, &left, row_ratio);
-		interpolate_color(top_right, bottom_right, &right, row_ratio);
-		for (col = 0; col < NK_LOVE_GRADIENT_RESOLUTION; ++col) {
-			float col_ratio = (float) col / NK_LOVE_GRADIENT_RESOLUTION;
-			struct nk_color pixel;
-			interpolate_color(left, right, &pixel, col_ratio);
-			lua_getfield(L, -1, "setPixel");
-			lua_pushvalue(L, -2);
-			lua_pushnumber(L, col);
-			lua_pushnumber(L, row);
-			lua_pushnumber(L, pixel.r);
-			lua_pushnumber(L, pixel.g);
-			lua_pushnumber(L, pixel.b);
-			lua_pushnumber(L, pixel.a);
-			lua_call(L, 7, 0);
+	lua_getfield(L, -1, "push");
+	lua_pushstring(L, "all");
+	lua_call(L, 1, 0);
+	lua_getfield(L, -1, "setColor");
+	lua_pushnumber(L, 1.0);
+	lua_pushnumber(L, 1.0);
+	lua_pushnumber(L, 1.0);
+	lua_call(L, 3, 0);
+	lua_getfield(L, -1, "setPointSize");
+	lua_pushnumber(L, 1);
+	lua_call(L, 1, 0);
+
+	struct nk_color X1, X2, Y;
+	float fraction_x, fraction_y;
+	int i,j;
+
+	lua_getfield(L, -1, "points");
+	lua_createtable(L, w * h, 0);
+
+	for (j = 0; j < h; j++) {
+		fraction_y = ((float)j) / h;
+		for (i = 0; i < w; i++) {
+			fraction_x = ((float)i) / w;
+			interpolate_color(left, top, &X1, fraction_x);
+			interpolate_color(right, bottom, &X2, fraction_x);
+			interpolate_color(X1, X2, &Y, fraction_y);
+			lua_createtable(L, 6, 0);
+			lua_pushnumber(L, x + i);
+			lua_rawseti(L, -2, 1);
+			lua_pushnumber(L, y + j);
+			lua_rawseti(L, -2, 2);
+			lua_pushnumber(L, Y.r / 255.0);
+			lua_rawseti(L, -2, 3);
+			lua_pushnumber(L, Y.g / 255.0);
+			lua_rawseti(L, -2, 4);
+			lua_pushnumber(L, Y.b / 255.0);
+			lua_rawseti(L, -2, 5);
+			lua_pushnumber(L, Y.a / 255.0);
+			lua_rawseti(L, -2, 6);
+			lua_rawseti(L, -2, i + j * w + 1);
 		}
 	}
-	lua_pop(L, 1);
-	lua_getfield(L, -1, "gradient");
-	lua_getfield(L, -1, "refresh");
-	lua_pushvalue(L, -2);
+
 	lua_call(L, 1, 0);
-	lua_getglobal(L, "love");
-	lua_getfield(L, -1, "graphics");
-	lua_getfield(L, -1, "draw");
-	lua_replace(L, -5);
+	lua_getfield(L, -1, "pop");
+	lua_call(L, 0, 0);
 	lua_pop(L, 2);
-	lua_pushnumber(L, x);
-	lua_pushnumber(L, y);
-	lua_pushnumber(L, 0);
-	lua_pushnumber(L, (float) w / NK_LOVE_GRADIENT_RESOLUTION);
-	lua_pushnumber(L, (float) h / NK_LOVE_GRADIENT_RESOLUTION);
-	lua_call(L, 6, 0);
 }
 
 static void nk_love_draw_image(int x, int y, unsigned int w, unsigned int h,
@@ -869,7 +871,7 @@ static void nk_love_draw_arc(int cx, int cy, unsigned int r,
 	lua_pop(L, 1);
 }
 
-static void nk_love_clipbard_paste(nk_handle usr, struct nk_text_edit *edit)
+static void nk_love_clipboard_paste(nk_handle usr, struct nk_text_edit *edit)
 {
 	(void)usr;
 	lua_getglobal(L, "love");
@@ -881,7 +883,7 @@ static void nk_love_clipbard_paste(nk_handle usr, struct nk_text_edit *edit)
 	lua_pop(L, 3);
 }
 
-static void nk_love_clipbard_copy(nk_handle usr, const char *text, int len)
+static void nk_love_clipboard_copy(nk_handle usr, const char *text, int len)
 {
 	(void)usr;
 	char *str = 0;
@@ -1061,8 +1063,8 @@ static int nk_love_new_ui(lua_State *L)
 	context = current;
 	nk_init_default(&ctx->nkctx, &ctx->fonts[0]);
 	ctx->font_count = 1;
-	ctx->nkctx.clip.copy = nk_love_clipbard_copy;
-	ctx->nkctx.clip.paste = nk_love_clipbard_paste;
+	ctx->nkctx.clip.copy = nk_love_clipboard_copy;
+	ctx->nkctx.clip.paste = nk_love_clipboard_paste;
 	ctx->nkctx.clip.userdata = nk_handle_ptr(0);
 	ctx->layout_ratios = nk_love_malloc(sizeof(float) * NK_LOVE_MAX_RATIOS);
 	ctx->layout_ratio_count = 0;
