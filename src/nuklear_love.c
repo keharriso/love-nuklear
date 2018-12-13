@@ -253,6 +253,10 @@ static struct nk_color nk_love_checkcolor(int index)
 	return color;
 }
 
+static struct nk_colorf nk_love_checkcolorf(int index) {
+	return nk_color_cf(nk_love_checkcolor(index));
+}
+
 static void nk_love_color(int r, int g, int b, int a, char *color_string)
 {
 	r = NK_CLAMP(0, r, 255);
@@ -1022,7 +1026,10 @@ static int nk_love_textinput_event(struct nk_context *ctx, const char *text)
 
 static int nk_love_wheelmoved_event(struct nk_context *ctx, int x, int y)
 {
-	nk_input_scroll(ctx,(float)y);
+	struct nk_vec2 scroll;
+	scroll.x = x;
+	scroll.y = y;
+	nk_input_scroll(ctx, scroll);
 	return nk_window_is_any_hovered(ctx);
 }
 
@@ -1798,36 +1805,39 @@ static int nk_love_item_is_any_active(lua_State *L)
 
 static int nk_love_window_set_bounds(lua_State *L)
 {
-	nk_love_assert_argc(lua_gettop(L) == 5);
+	nk_love_assert_argc(lua_gettop(L) == 6);
 	nk_love_assert_context(1);
+	const char *name = luaL_checkstring(L, 2);
 	struct nk_rect bounds;
-	bounds.x = luaL_checknumber(L, 2);
-	bounds.y = luaL_checknumber(L, 3);
-	bounds.w = luaL_checknumber(L, 4);
-	bounds.h = luaL_checknumber(L, 5);
-	nk_window_set_bounds(&context->nkctx, bounds);
+	bounds.x = luaL_checknumber(L, 3);
+	bounds.y = luaL_checknumber(L, 4);
+	bounds.w = luaL_checknumber(L, 5);
+	bounds.h = luaL_checknumber(L, 6);
+	nk_window_set_bounds(&context->nkctx, name, bounds);
 	return 0;
 }
 
 static int nk_love_window_set_position(lua_State *L)
 {
-	nk_love_assert_argc(lua_gettop(L) == 3);
+	nk_love_assert_argc(lua_gettop(L) == 4);
 	nk_love_assert_context(1);
+	const char *name = luaL_checkstring(L, 2);
 	struct nk_vec2 pos;
-	pos.x = luaL_checknumber(L, 2);
-	pos.y = luaL_checknumber(L, 3);
-	nk_window_set_position(&context->nkctx, pos);
+	pos.x = luaL_checknumber(L, 3);
+	pos.y = luaL_checknumber(L, 4);
+	nk_window_set_position(&context->nkctx, name, pos);
 	return 0;
 }
 
 static int nk_love_window_set_size(lua_State *L)
 {
-	nk_love_assert_argc(lua_gettop(L) == 3);
+	nk_love_assert_argc(lua_gettop(L) == 4);
 	nk_love_assert_context(1);
+	const char *name = luaL_checkstring(L, 2);
 	struct nk_vec2 size;
-	size.x = luaL_checknumber(L, 2);
-	size.y = luaL_checknumber(L, 3);
-	nk_window_set_size(&context->nkctx, size);
+	size.x = luaL_checknumber(L, 3);
+	size.y = luaL_checknumber(L, 4);
+	nk_window_set_size(&context->nkctx, name, size);
 	return 0;
 }
 
@@ -2488,20 +2498,22 @@ static int nk_love_color_picker(lua_State *L)
 	if (argc >= 3)
 		format = nk_love_checkcolorformat(3);
 	if (lua_isstring(L, 2)) {
-		struct nk_color color = nk_love_checkcolor(2);
+		struct nk_colorf color = nk_love_checkcolorf(2);
 		color = nk_color_picker(&context->nkctx, color, format);
 		char new_color_string[10];
-		nk_love_color(color.r, color.g, color.b, color.a, new_color_string);
+		nk_love_color((int) (color.r * 255), (int) (color.g * 255),
+				(int) (color.b * 255), (int) (color.a * 255), new_color_string);
 		lua_pushstring(L, new_color_string);
 	} else if (lua_istable(L, 2)) {
 		lua_getfield(L, 2, "value");
 		if (!nk_love_is_color(-1))
 			luaL_argerror(L, 2, "should have a color string value");
-		struct nk_color color = nk_love_checkcolor(-1);
+		struct nk_colorf color = nk_love_checkcolorf(-1);
 		int changed = nk_color_pick(&context->nkctx, &color, format);
 		if (changed) {
 			char new_color_string[10];
-			nk_love_color(color.r, color.g, color.b, color.a, new_color_string);
+			nk_love_color((int) (color.r * 255), (int) (color.g * 255),
+					(int) (color.b * 255), (int) (color.a * 255), new_color_string);
 			lua_pushstring(L, new_color_string);
 			lua_setfield(L, 2, "value");
 		}
