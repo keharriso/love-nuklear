@@ -1,28 +1,34 @@
 -- Basic skinning example.
 
 local windowHeader = love.graphics.newImage 'skin/window_header.png'
-local checkboxSkin = love.graphics.newImage 'skin/checkbox_false.png'
-local checkboxCheck = love.graphics.newImage 'skin/checkbox_true.png'
+local windowBody = love.graphics.newImage 'skin/window.png'
+local checkboxTexture = love.graphics.newImage 'skin/checkbox.png'
+local checkboxOff = {checkboxTexture, love.graphics.newQuad(0, 0, 51, 55, 58, 115)}
+local checkboxOn = {checkboxTexture, love.graphics.newQuad(0, 55, 58, 60, 58, 115)}
+local buttonTexture = love.graphics.newImage 'skin/button.png'
+local buttonNormal = {buttonTexture, love.graphics.newQuad(0, 0, 69, 52, 69, 156)}
+local buttonActive = {buttonTexture, love.graphics.newQuad(0, 52, 69, 52, 69, 156)}
+local buttonHover = {buttonTexture, love.graphics.newQuad(0, 104, 69, 52, 69, 156)}
 
 local style = {
 	['text'] = {
 		['color'] = '#000000'
 	},
 	['button'] = {
-		['normal'] = love.graphics.newImage 'skin/button.png',
-		['hover'] = love.graphics.newImage 'skin/button_hover.png',
-		['active'] = love.graphics.newImage 'skin/button_active.png',
+		['normal'] = buttonNormal,
+		['hover'] = buttonHover,
+		['active'] = buttonActive,
 		['text background'] = '#00000000',
 		['text normal'] = '#000000',
 		['text hover'] = '#000000',
 		['text active'] = '#ffffff'
 	},
 	['checkbox'] = {
-		['normal'] = checkboxSkin,
-		['hover'] = checkboxSkin,
-		['active'] = checkboxSkin,
-		['cursor normal'] = checkboxCheck,
-		['cursor hover'] = checkboxCheck,
+		['normal'] = checkboxOff,
+		['hover'] = checkboxOff,
+		['active'] = checkboxOff,
+		['cursor normal'] = checkboxOn,
+		['cursor hover'] = checkboxOn,
 		['text normal'] = '#000000',
 		['text hover'] = '#000000',
 		['text active'] = '#000000',
@@ -38,7 +44,7 @@ local style = {
 			['label active'] = '#000000',
 			['label padding'] = {x = 10, y = 8}
 		},
-		['fixed background'] = love.graphics.newImage 'skin/window.png',
+		['fixed background'] = windowBody,
 		['background'] = '#d3ceaa'
 	}
 }

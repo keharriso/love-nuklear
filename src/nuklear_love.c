@@ -184,24 +184,42 @@ static void nk_love_checkImage(int index, struct nk_image *image)
 {
 	if (index < 0)
 		index += lua_gettop(L) + 1;
-	if (!nk_love_is_type(index, "Image"))
-		luaL_typerror(L, index, "Image");
+	if (nk_love_is_type(index, "Image")) {
+		lua_getglobal(L, "love");
+		lua_getfield(L, -1, "graphics");
+		lua_getfield(L, -1, "newQuad");
+		lua_pushnumber(L, 0);
+		lua_pushnumber(L, 0);
+		lua_getfield(L, index, "getDimensions");
+		lua_pushvalue(L, index);
+		lua_call(L, 1, 2);
+		lua_pushvalue(L, -2);
+		lua_pushvalue(L, -2);
+		lua_call(L, 6, 1);
+		lua_newtable(L);
+		lua_pushvalue(L, index);
+		lua_rawseti(L, -2, 1);
+		lua_replace(L, -3);
+		lua_rawseti(L, -2, 2);
+		lua_replace(L, -2);
+	} else if (lua_istable(L, index)) {
+		lua_createtable(L, 2, 0);
+		lua_rawgeti(L, index, 2);
+		lua_rawgeti(L, index, 1);
+		if (nk_love_is_type(-1, "Image") && nk_love_is_type(-2, "Quad")) {
+			lua_rawseti(L, -3, 1);
+			lua_rawseti(L, -2, 2);
+		} else {
+			luaL_argerror(L, index, "expecting {Image, Quad}");
+		}
+	} else {
+		luaL_argerror(L, index, "expecting Image or {Image, Quad}");
+	}
 	nk_love_pushregistry("image");
-	lua_pushvalue(L, index);
+	lua_pushvalue(L, -2);
 	int ref = luaL_ref(L, -2);
-	lua_getfield(L, index, "getDimensions");
-	lua_pushvalue(L, index);
-	lua_call(L, 1, 2);
-	int width = lua_tointeger(L, -2);
-	int height = lua_tointeger(L, -1);
 	image->handle = nk_handle_id(ref);
-	image->w = width;
-	image->h = height;
-	image->region[0] = 0;
-	image->region[1] = 0;
-	image->region[2] = width;
-	image->region[3] = height;
-	lua_pop(L, 3);
+	lua_pop(L, 2);
 }
 
 static int nk_love_is_hex(char c)
@@ -847,20 +865,21 @@ static void nk_love_draw_image(int x, int y, unsigned int w, unsigned int h,
 	lua_getfield(L, -1, "draw");
 	nk_love_pushregistry("image");
 	lua_rawgeti(L, -1, image.handle.id);
+	lua_rawgeti(L, -1, 1);
+	lua_replace(L, -3);
+	lua_rawgeti(L, -1, 2);
 	lua_replace(L, -2);
-	lua_getfield(L, -3, "newQuad");
-	lua_pushnumber(L, image.region[0]);
-	lua_pushnumber(L, image.region[1]);
-	lua_pushnumber(L, image.region[2]);
-	lua_pushnumber(L, image.region[3]);
-	lua_pushnumber(L, image.w);
-	lua_pushnumber(L, image.h);
-	lua_call(L, 6, 1);
 	lua_pushnumber(L, x);
 	lua_pushnumber(L, y);
 	lua_pushnumber(L, 0);
-	lua_pushnumber(L, (double) w / image.region[2]);
-	lua_pushnumber(L, (double) h / image.region[3]);
+	lua_getfield(L, -4, "getViewport");
+	lua_pushvalue(L, -5);
+	lua_call(L, 1, 4);
+	double viewportWidth = lua_tonumber(L, -2);
+	double viewportHeight = lua_tonumber(L, -1);
+	lua_pop(L, 4);
+	lua_pushnumber(L, (double) w / viewportWidth);
+	lua_pushnumber(L, (double) h / viewportHeight);
 	lua_call(L, 7, 0);
 	lua_pop(L, 1);
 }
