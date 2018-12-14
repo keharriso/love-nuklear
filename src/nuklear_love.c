@@ -637,8 +637,8 @@ static void nk_love_draw_rect(int x, int y,	unsigned int w,
 		lua_pushstring(L, "line");
 	else
 		lua_pushstring(L, "fill");
-	lua_pushnumber(L, x + 0.5);
-	lua_pushnumber(L, y + 0.5);
+	lua_pushnumber(L, x);
+	lua_pushnumber(L, y);
 	lua_pushnumber(L, w);
 	lua_pushnumber(L, h);
 	lua_pushnumber(L, r);
