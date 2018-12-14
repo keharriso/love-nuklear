@@ -3928,23 +3928,9 @@ LUALIB_API int luaopen_nuklear(lua_State *luaState)
 
 	lua_getglobal(L, "love");
 	nk_love_assert(lua_istable(L, -1), "LOVE-Nuklear requires LOVE environment");
-	lua_getfield(L, -1, "image");
-	lua_getfield(L, -1, "newImageData");
-	lua_pushnumber(L, NK_LOVE_GRADIENT_RESOLUTION);
-	lua_pushnumber(L, NK_LOVE_GRADIENT_RESOLUTION);
-	lua_call(L, 2, 1);
-	lua_getfield(L, -3, "graphics");
-	lua_getfield(L, -1, "newImage");
-	lua_pushvalue(L, -3);
-	lua_call(L, 1, 1);
-	lua_setfield(L, -6, "gradient");
 	lua_pop(L, 1);
-	lua_setfield(L, -4, "gradientData");
-	lua_pop(L, 2);
 
 	lua_newtable(L);
-	lua_pushvalue(L, -1);
-	lua_setfield(L, -3, "methods");
 
 	NK_LOVE_REGISTER("keypressed", nk_love_keypressed);
 	NK_LOVE_REGISTER("keyreleased", nk_love_keyreleased);
