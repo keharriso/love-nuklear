@@ -1808,6 +1808,16 @@ static int nk_love_window_is_collapsed(lua_State *L)
 	return 1;
 }
 
+static int nk_love_window_is_closed(lua_State *L)
+{
+	nk_love_assert_argc(lua_gettop(L) == 2);
+	nk_love_assert_context(1);
+	const char *name = luaL_checkstring(L, 2);
+	int is_closed = nk_window_is_closed(&context->nkctx, name);
+	lua_pushboolean(L, is_closed);
+	return 1;
+}
+
 static int nk_love_window_is_hidden(lua_State *L)
 {
 	nk_love_assert_argc(lua_gettop(L) == 2);
@@ -2025,6 +2035,43 @@ static int nk_love_layout_row_end(lua_State *L)
 	nk_love_assert_context(1);
 	nk_layout_row_end(&context->nkctx);
 	return 0;
+}
+
+static int nk_love_layout_template_begin(lua_State *L)
+{
+	nk_love_assert_argc(lua_gettop(L) == 2);
+	nk_love_assert_context(1);
+	float height = luaL_checknumber(L, 2);
+	nk_layout_row_template_begin(&context->nkctx, height);
+	return 0;
+}
+
+static int nk_love_layout_template_push(lua_State *L)
+{
+	nk_love_assert_argc(lua_gettop(L) == 2 || lua_gettop(L) == 3);
+	nk_love_assert_context(1);
+	const char *mode = luaL_checkstring(L, 2);
+	if (lua_gettop(L) == 2) {
+		nk_love_assert(!strcmp(mode, "dynamic"), "%s: expecting 'dynamic' mode or width argument");
+		nk_layout_row_template_push_dynamic(&context->nkctx);
+	} else {
+		float width = luaL_checknumber(L, 3);
+		if (!strcmp(mode, "variable")) {
+			nk_layout_row_template_push_variable(&context->nkctx, width);
+		} else if (!strcmp(mode, "static")) {
+			nk_layout_row_template_push_static(&context->nkctx, width);
+		} else {
+			return luaL_argerror(L, 2, "expecting 'dynamic', 'variable', or 'static' modes");
+		}
+	}
+	return 0;
+}
+
+static int nk_love_layout_template_end(lua_State *L)
+{
+	nk_love_assert_argc(lua_gettop(L) == 1);
+	nk_love_assert_context(1);
+	nk_layout_row_template_end(&context->nkctx);
 }
 
 static int nk_love_layout_space_begin(lua_State *L)
@@ -2656,6 +2703,22 @@ static int nk_love_edit(lua_State *L)
 		lua_pushnil(L);
 	lua_pushboolean(L, changed);
 	return 2;
+}
+
+int nk_love_edit_focus(lua_State *L)
+{
+	nk_love_assert_argc(lua_gettop(L) == 1);
+	nk_love_assert_context(1);
+	nk_edit_focus(&context->nkctx, NK_EDIT_DEFAULT);
+	return 0;
+}
+
+int nk_love_edit_unfocus(lua_State *L)
+{
+	nk_love_assert_argc(lua_gettop(L) == 1);
+	nk_love_assert_context(1);
+	nk_edit_unfocus(&context->nkctx);
+	return 0;
 }
 
 static int nk_love_popup_begin(lua_State *L)
@@ -3977,6 +4040,7 @@ LUALIB_API int luaopen_nuklear(lua_State *luaState)
 	NK_LOVE_REGISTER("windowGetContentRegion", nk_love_window_get_content_region);
 	NK_LOVE_REGISTER("windowHasFocus", nk_love_window_has_focus);
 	NK_LOVE_REGISTER("windowIsCollapsed", nk_love_window_is_collapsed);
+	NK_LOVE_REGISTER("windowIsClosed", nk_love_window_is_closed);
 	NK_LOVE_REGISTER("windowIsHidden", nk_love_window_is_hidden);
 	NK_LOVE_REGISTER("windowIsActive", nk_love_window_is_active);
 	NK_LOVE_REGISTER("windowIsHovered", nk_love_window_is_hovered);
@@ -3996,6 +4060,9 @@ LUALIB_API int luaopen_nuklear(lua_State *luaState)
 	NK_LOVE_REGISTER("layoutRowBegin", nk_love_layout_row_begin);
 	NK_LOVE_REGISTER("layoutRowPush", nk_love_layout_row_push);
 	NK_LOVE_REGISTER("layoutRowEnd", nk_love_layout_row_end);
+	NK_LOVE_REGISTER("layoutTemplateBegin", nk_love_layout_template_begin);
+	NK_LOVE_REGISTER("layoutTemplatePush", nk_love_layout_template_push);
+	NK_LOVE_REGISTER("layoutTemplateEnd", nk_love_layout_template_end);
 	NK_LOVE_REGISTER("layoutSpaceBegin", nk_love_layout_space_begin);
 	NK_LOVE_REGISTER("layoutSpacePush", nk_love_layout_space_push);
 	NK_LOVE_REGISTER("layoutSpaceEnd", nk_love_layout_space_end);
@@ -4026,6 +4093,8 @@ LUALIB_API int luaopen_nuklear(lua_State *luaState)
 	NK_LOVE_REGISTER("colorPicker", nk_love_color_picker);
 	NK_LOVE_REGISTER("property", nk_love_property);
 	NK_LOVE_REGISTER("edit", nk_love_edit);
+	NK_LOVE_REGISTER("editFocus", nk_love_edit_focus);
+	NK_LOVE_REGISTER("editUnfocus", nk_love_edit_unfocus);
 	NK_LOVE_REGISTER("popupBegin", nk_love_popup_begin);
 	NK_LOVE_REGISTER("popupClose", nk_love_popup_close);
 	NK_LOVE_REGISTER("popupEnd", nk_love_popup_end);

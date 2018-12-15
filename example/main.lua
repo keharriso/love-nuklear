@@ -7,6 +7,7 @@ local draw = require 'draw'
 local overview = require 'overview'
 local style = require 'style'
 local skin = require 'skin'
+local template = require 'template'
 local transform = require 'transform'
 
 local ui1, ui2
@@ -21,6 +22,7 @@ function love.update(dt)
 		style(ui1)
 		overview(ui1)
 		draw(ui1)
+		template(ui1)
 		skin(ui1)
 	ui1:frameEnd()
 	ui2:frameBegin()
