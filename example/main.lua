@@ -3,6 +3,7 @@
 local nuklear = require 'nuklear'
 
 local calculator = require 'calculator'
+local closure = require 'closure'
 local draw = require 'draw'
 local overview = require 'overview'
 local style = require 'style'
@@ -20,6 +21,7 @@ function love.update(dt)
 	ui1:frameBegin()
 		calculator(ui1)
 		style(ui1)
+		closure(ui1)
 		overview(ui1)
 		draw(ui1)
 		template(ui1)
@@ -33,7 +35,7 @@ end
 function love.draw()
 	ui1:draw()
 	ui2:draw()
-	love.graphics.print("Current FPS: "..tostring(love.timer.getFPS( )), 10, 10)
+	love.graphics.print('Current FPS: '..tostring(love.timer.getFPS( )), 10, 10)
 end
 
 local function input(name, ...)

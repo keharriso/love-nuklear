@@ -290,12 +290,20 @@ static void nk_love_color(int r, int g, int b, int a, char *color_string)
 	sprintf(color_string, format_string, r, g, b, a);
 }
 
-static nk_flags nk_love_parse_window_flags(int flags_begin)
+static nk_flags nk_love_parse_window_flags(int flags_begin, int flags_end)
 {
-	int argc = lua_gettop(L);
-	nk_flags flags = NK_WINDOW_NO_SCROLLBAR;
 	int i;
-	for (i = flags_begin; i <= argc; ++i) {
+	if (flags_begin == flags_end && lua_istable(L, flags_begin)) {
+		size_t flagCount = lua_objlen(L, flags_begin);
+		nk_love_assert(lua_checkstack(L, flagCount), "%s: failed to allocate stack space");
+		for (i = 1; i <= flagCount; ++i) {
+			lua_rawgeti(L, flags_begin, i);
+		}
+		lua_remove(L, flags_begin);
+		flags_end = flags_begin + flagCount - 1;
+	}
+	nk_flags flags = NK_WINDOW_NO_SCROLLBAR;
+	for (i = flags_begin; i <= flags_end; ++i) {
 		const char *flag = luaL_checkstring(L, i);
 		if (!strcmp(flag, "border"))
 			flags |= NK_WINDOW_BORDER;
@@ -1518,6 +1526,22 @@ static int nk_love_frame_end(lua_State *L)
 	return 0;
 }
 
+static int nk_love_frame(lua_State *L)
+{
+	nk_love_assert_argc(lua_gettop(L) == 2);
+	if (!lua_isfunction(L, -1))
+		luaL_typerror(L, lua_gettop(L), "function");
+	lua_getfield(L, 1, "frameBegin");
+	lua_pushvalue(L, 1);
+	lua_call(L, 1, 0);
+	lua_pushvalue(L, 1);
+	lua_call(L, 1, 0);
+	lua_getfield(L, 1, "frameEnd");
+	lua_insert(L, 1);
+	lua_call(L, 1, 0);
+	return 0;
+}
+
 /*
  * ===============================================================
  *
@@ -1727,7 +1751,7 @@ static int nk_love_window_begin(lua_State *L)
 		title = luaL_checkstring(L, 3);
 		bounds_begin = 4;
 	}
-	nk_flags flags = nk_love_parse_window_flags(bounds_begin + 4);
+	nk_flags flags = nk_love_parse_window_flags(bounds_begin + 4, lua_gettop(L));
 	float x = luaL_checknumber(L, bounds_begin);
 	float y = luaL_checknumber(L, bounds_begin + 1);
 	float width = luaL_checknumber(L, bounds_begin + 2);
@@ -1742,6 +1766,31 @@ static int nk_love_window_end(lua_State *L)
 	nk_love_assert_argc(lua_gettop(L) == 1);
 	nk_love_assert_context(1);
 	nk_end(&context->nkctx);
+	return 0;
+}
+
+static int nk_love_window(lua_State *L)
+{
+	nk_love_assert(lua_checkstack(L, 2), "%s: failed to allocate stack space");
+	if (!lua_isfunction(L, -1))
+		luaL_typerror(L, lua_gettop(L), "function");
+	lua_insert(L, 2);
+	lua_pushvalue(L, 1);
+	lua_insert(L, 3);
+	lua_getfield(L, 1, "windowBegin");
+	lua_insert(L, 3);
+	lua_call(L, lua_gettop(L) - 3, 1);
+	int open = lua_toboolean(L, -1);
+	lua_pop(L, 1);
+	if (open) {
+		lua_pushvalue(L, 1);
+		lua_call(L, 1, 0);
+	} else {
+		lua_pop(L, 1);
+	}
+	lua_getfield(L, -1, "windowEnd");
+	lua_insert(L, 1);
+	lua_call(L, 1, 0);
 	return 0;
 }
 
@@ -1967,44 +2016,60 @@ static int nk_love_window_hide(lua_State *L)
 static int nk_love_layout_row(lua_State *L)
 {
 	int argc = lua_gettop(L);
-	nk_love_assert_argc(argc >= 4 && argc <= 5);
-	nk_love_assert_context(1);
-	enum nk_layout_format format = nk_love_checkformat(2);
-	float height = luaL_checknumber(L, 3);
-	int use_ratios = 0;
-	if (format == NK_DYNAMIC) {
-		nk_love_assert_argc(argc == 4);
-		if (lua_isnumber(L, 4)) {
-			int cols = luaL_checkint(L, 4);
-			nk_layout_row_dynamic(&context->nkctx, height, cols);
-		} else {
-			if (!lua_istable(L, 4))
-				luaL_argerror(L, 4, "should be a number or table");
-			use_ratios = 1;
+	if (argc == 5 && lua_isfunction(L, 5)) {
+		nk_love_assert(lua_checkstack(L, 3), "%s: failed to allocate stack space");
+		lua_pushvalue(L, 1);
+		lua_insert(L, 2);
+		lua_pushvalue(L, 1);
+		lua_insert(L, 3);
+		lua_insert(L, 2);
+		lua_getfield(L, 1, "layoutRowBegin");
+		lua_insert(L, 4);
+		lua_call(L, 4, 0);
+		lua_call(L, 1, 0);
+		lua_getfield(L, 1, "layoutRowEnd");
+		lua_insert(L, 1);
+		lua_call(L, 1, 0);
+	} else {
+		nk_love_assert_argc(argc >= 4 && argc <= 5);
+		nk_love_assert_context(1);
+		enum nk_layout_format format = nk_love_checkformat(2);
+		float height = luaL_checknumber(L, 3);
+		int use_ratios = 0;
+		if (format == NK_DYNAMIC) {
+			nk_love_assert_argc(argc == 4);
+			if (lua_isnumber(L, 4)) {
+				int cols = luaL_checkint(L, 4);
+				nk_layout_row_dynamic(&context->nkctx, height, cols);
+			} else {
+				if (!lua_istable(L, 4))
+					luaL_argerror(L, 4, "should be a number or table");
+				use_ratios = 1;
+			}
+		} else if (format == NK_STATIC) {
+			if (argc == 5) {
+				int item_width = luaL_checkint(L, 4);
+				int cols = luaL_checkint(L, 5);
+				nk_layout_row_static(&context->nkctx, height, item_width, cols);
+			} else {
+				if (!lua_istable(L, 4))
+					luaL_argerror(L, 4, "should be a number or table");
+				use_ratios = 1;
+			}
 		}
-	} else if (format == NK_STATIC) {
-		if (argc == 5) {
-			int item_width = luaL_checkint(L, 4);
-			int cols = luaL_checkint(L, 5);
-			nk_layout_row_static(&context->nkctx, height, item_width, cols);
-		} else {
-			if (!lua_istable(L, 4))
-				luaL_argerror(L, 4, "should be a number or table");
-			use_ratios = 1;
+		if (use_ratios) {
+			int cols = lua_objlen(L, -1);
+			int i, j;
+			for (i = 1, j = context->layout_ratio_count; i <= cols && j < NK_LOVE_MAX_RATIOS; ++i, ++j) {
+				lua_rawgeti(L, -1, i);
+				if (!lua_isnumber(L, -1))
+					luaL_argerror(L, lua_gettop(L) - 1, "should contain numbers only");
+				context->layout_ratios[j] = lua_tonumber(L, -1);
+				lua_pop(L, 1);
+			}
+			nk_layout_row(&context->nkctx, format, height, cols, context->layout_ratios + context->layout_ratio_count);
+			context->layout_ratio_count += cols;
 		}
-	}
-	if (use_ratios) {
-		int cols = lua_objlen(L, -1);
-		int i, j;
-		for (i = 1, j = context->layout_ratio_count; i <= cols && j < NK_LOVE_MAX_RATIOS; ++i, ++j) {
-			lua_rawgeti(L, -1, i);
-			if (!lua_isnumber(L, -1))
-				luaL_argerror(L, lua_gettop(L) - 1, "should contain numbers only");
-			context->layout_ratios[j] = lua_tonumber(L, -1);
-			lua_pop(L, 1);
-		}
-		nk_layout_row(&context->nkctx, format, height, cols, context->layout_ratios + context->layout_ratio_count);
-		context->layout_ratio_count += cols;
 	}
 	return 0;
 }
@@ -2051,10 +2116,11 @@ static int nk_love_layout_template_push(lua_State *L)
 	nk_love_assert_argc(lua_gettop(L) == 2 || lua_gettop(L) == 3);
 	nk_love_assert_context(1);
 	const char *mode = luaL_checkstring(L, 2);
-	if (lua_gettop(L) == 2) {
-		nk_love_assert(!strcmp(mode, "dynamic"), "%s: expecting 'dynamic' mode or width argument");
+	if (!strcmp(mode, "dynamic")) {
+		nk_love_assert_argc(lua_gettop(L) == 2);
 		nk_layout_row_template_push_dynamic(&context->nkctx);
 	} else {
+		nk_love_assert_argc(lua_gettop(L) == 3);
 		float width = luaL_checknumber(L, 3);
 		if (!strcmp(mode, "variable")) {
 			nk_layout_row_template_push_variable(&context->nkctx, width);
@@ -2072,6 +2138,27 @@ static int nk_love_layout_template_end(lua_State *L)
 	nk_love_assert_argc(lua_gettop(L) == 1);
 	nk_love_assert_context(1);
 	nk_layout_row_template_end(&context->nkctx);
+}
+
+static int nk_love_layout_template(lua_State *L)
+{
+	nk_love_assert(lua_checkstack(L, 3), "%s: failed to allocate stack space");
+	nk_love_assert_argc(lua_gettop(L) == 3);
+	if (!lua_isfunction(L, -1))
+		luaL_typerror(L, lua_gettop(L), "function");
+	lua_pushvalue(L, 1);
+	lua_insert(L, 2);
+	lua_pushvalue(L, 1);
+	lua_insert(L, 3);
+	lua_insert(L, 2);
+	lua_getfield(L, 1, "layoutTemplateBegin");
+	lua_insert(L, 4);
+	lua_call(L, 2, 0);
+	lua_call(L, 1, 0);
+	lua_getfield(L, 1, "layoutTemplateEnd");
+	lua_insert(L, 1);
+	lua_call(L, 1, 0);
+	return 0;
 }
 
 static int nk_love_layout_space_begin(lua_State *L)
@@ -2102,6 +2189,27 @@ static int nk_love_layout_space_end(lua_State *L)
 	nk_love_assert_argc(lua_gettop(L) == 1);
 	nk_love_assert_context(1);
 	nk_layout_space_end(&context->nkctx);
+	return 0;
+}
+
+static int nk_love_layout_space(lua_State *L)
+{
+	nk_love_assert(lua_checkstack(L, 3), "%s: failed to allocate stack space");
+	nk_love_assert_argc(lua_gettop(L) == 5);
+	if (!lua_isfunction(L, -1))
+		luaL_typerror(L, lua_gettop(L), "function");
+	lua_pushvalue(L, 1);
+	lua_insert(L, 2);
+	lua_pushvalue(L, 1);
+	lua_insert(L, 3);
+	lua_insert(L, 2);
+	lua_getfield(L, 1, "layoutSpaceBegin");
+	lua_insert(L, 4);
+	lua_call(L, 4, 0);
+	lua_call(L, 1, 0);
+	lua_getfield(L, 1, "layoutSpaceEnd");
+	lua_insert(L, 1);
+	lua_call(L, 1, 0);
 	return 0;
 }
 
@@ -2200,7 +2308,7 @@ static int nk_love_group_begin(lua_State *L)
 	nk_love_assert_argc(lua_gettop(L) >= 2);
 	nk_love_assert_context(1);
 	const char *title = luaL_checkstring(L, 2);
-	nk_flags flags = nk_love_parse_window_flags(3);
+	nk_flags flags = nk_love_parse_window_flags(3, lua_gettop(L));
 	int open = nk_group_begin(&context->nkctx, title, flags);
 	lua_pushboolean(L, open);
 	return 1;
@@ -2211,6 +2319,33 @@ static int nk_love_group_end(lua_State *L)
 	nk_love_assert_argc(lua_gettop(L) == 1);
 	nk_love_assert_context(1);
 	nk_group_end(&context->nkctx);
+	return 0;
+}
+
+static int nk_love_group(lua_State *L)
+{
+	nk_love_assert(lua_checkstack(L, 3), "%s: failed to allocate stack space");
+	nk_love_assert_argc(lua_gettop(L) >= 3);
+	if (!lua_isfunction(L, -1))
+		luaL_typerror(L, lua_gettop(L), "function");
+	lua_pushvalue(L, 1);
+	lua_insert(L, 2);
+	lua_pushvalue(L, 1);
+	lua_insert(L, 3);
+	lua_insert(L, 2);
+	lua_getfield(L, 1, "groupBegin");
+	lua_insert(L, 4);
+	lua_call(L, lua_gettop(L) - 4, 1);
+	int open = lua_toboolean(L, -1);
+	lua_pop(L, 1);
+	if (open) {
+		lua_call(L, 1, 0);
+		lua_getfield(L, 1, "groupEnd");
+		lua_insert(L, 1);
+		lua_call(L, 1, 0);
+	} else {
+		lua_pop(L, 3);
+	}
 	return 0;
 }
 
@@ -2248,6 +2383,31 @@ static int nk_love_tree_pop(lua_State *L)
 	nk_love_assert_argc(lua_gettop(L) == 1);
 	nk_love_assert_context(1);
 	nk_tree_pop(&context->nkctx);
+	return 0;
+}
+
+static int nk_love_tree(lua_State *L)
+{
+	nk_love_assert(lua_checkstack(L, 3), "%s: failed to allocate stack space");
+	nk_love_assert_argc(lua_gettop(L) >= 4);
+	if (!lua_isfunction(L, -1))
+		luaL_typerror(L, lua_gettop(L), "function");
+	lua_pushvalue(L, 1);
+	lua_insert(L, 2);
+	lua_pushvalue(L, 1);
+	lua_insert(L, 3);
+	lua_insert(L, 2);
+	lua_getfield(L, 1, "treePush");
+	lua_insert(L, 4);
+	lua_call(L, lua_gettop(L) - 4, 1);
+	int open = lua_toboolean(L, -1);
+	lua_pop(L, 1);
+	if (open) {
+		lua_call(L, 1, 0);
+		lua_getfield(L, 1, "treePop");
+		lua_insert(L, 1);
+		lua_call(L, 1, 0);
+	}
 	return 0;
 }
 
@@ -2732,7 +2892,7 @@ static int nk_love_popup_begin(lua_State *L)
 	bounds.y = luaL_checknumber(L, 5);
 	bounds.w = luaL_checknumber(L, 6);
 	bounds.h = luaL_checknumber(L, 7);
-	nk_flags flags = nk_love_parse_window_flags(8);
+	nk_flags flags = nk_love_parse_window_flags(8, lua_gettop(L));
 	int open = nk_popup_begin(&context->nkctx, type, title, flags, bounds);
 	lua_pushboolean(L, open);
 	return 1;
@@ -2754,11 +2914,56 @@ static int nk_love_popup_end(lua_State *L)
 	return 0;
 }
 
+static int nk_love_popup(lua_State *L)
+{
+	nk_love_assert(lua_checkstack(L, 3), "%s: failed to allocate stack space");
+	nk_love_assert_argc(lua_gettop(L) >= 8);
+	if (!lua_isfunction(L, -1))
+		luaL_typerror(L, lua_gettop(L), "function");
+	lua_pushvalue(L, 1);
+	lua_insert(L, 2);
+	lua_pushvalue(L, 1);
+	lua_insert(L, 3);
+	lua_insert(L, 2);
+	lua_getfield(L, 1, "popupBegin");
+	lua_insert(L, 4);
+	lua_call(L, lua_gettop(L) - 4, 1);
+	int open = lua_toboolean(L, -1);
+	lua_pop(L, 1);
+	if (open) {
+		lua_call(L, 1, 0);
+		lua_getfield(L, 1, "popupEnd");
+		lua_insert(L, 1);
+		lua_call(L, 1, 0);
+	}
+	return 0;
+}
+
 static int nk_love_combobox(lua_State *L)
 {
 	int argc = lua_gettop(L);
 	nk_love_assert_argc(argc >= 3 && argc <= 6);
 	nk_love_assert_context(1);
+	if (lua_isfunction(L, -1)) {
+		nk_love_assert(lua_checkstack(L, 3), "%s: failed to allocate stack space");
+		lua_pushvalue(L, 1);
+		lua_insert(L, 2);
+		lua_pushvalue(L, 1);
+		lua_insert(L, 3);
+		lua_insert(L, 2);
+		lua_getfield(L, 1, "comboboxBegin");
+		lua_insert(L, 4);
+		lua_call(L, lua_gettop(L) - 4, 1);
+		int open = lua_toboolean(L, -1);
+		lua_pop(L, 1);
+		if (open) {
+			lua_call(L, 1, 0);
+			lua_getfield(L, 1, "comboboxEnd");
+			lua_insert(L, 1);
+			lua_call(L, 1, 0);
+		}
+		return 0;
+	}
 	if (!lua_istable(L, 3))
 		luaL_typerror(L, 3, "table");
 	int i;
@@ -2918,7 +3123,7 @@ static int nk_love_contextual_begin(lua_State *L)
 	trigger.y = luaL_checknumber(L, 5);
 	trigger.w = luaL_checknumber(L, 6);
 	trigger.h = luaL_checknumber(L, 7);
-	nk_flags flags = nk_love_parse_window_flags(8);
+	nk_flags flags = nk_love_parse_window_flags(8, lua_gettop(L));
 	int open = nk_contextual_begin(&context->nkctx, flags, size, trigger);
 	lua_pushboolean(L, open);
 	return 1;
@@ -2971,12 +3176,28 @@ static int nk_love_contextual_end(lua_State *L)
 	return 0;
 }
 
-static int nk_love_tooltip(lua_State *L)
+static int nk_love_contextual(lua_State *L)
 {
-	nk_love_assert_argc(lua_gettop(L) == 2);
-	nk_love_assert_context(1);
-	const char *text = luaL_checkstring(L, 2);
-	nk_tooltip(&context->nkctx, text);
+	nk_love_assert(lua_checkstack(L, 3), "%s: failed to allocate stack space");
+	nk_love_assert_argc(lua_gettop(L) >= 8);
+	if (!lua_isfunction(L, -1))
+		luaL_typerror(L, lua_gettop(L), "function");
+	lua_pushvalue(L, 1);
+	lua_insert(L, 2);
+	lua_pushvalue(L, 1);
+	lua_insert(L, 3);
+	lua_insert(L, 2);
+	lua_getfield(L, 1, "contextualBegin");
+	lua_insert(L, 4);
+	lua_call(L, lua_gettop(L) - 4, 1);
+	int open = lua_toboolean(L, -1);
+	lua_pop(L, 1);
+	if (open) {
+		lua_call(L, 1, 0);
+		lua_getfield(L, 1, "contextualEnd");
+		lua_insert(L, 1);
+		lua_call(L, 1, 0);
+	}
 	return 0;
 }
 
@@ -2998,6 +3219,37 @@ static int nk_love_tooltip_end(lua_State *L)
 	return 0;
 }
 
+static int nk_love_tooltip(lua_State *L)
+{
+	if (lua_gettop(L) == 3) {
+		nk_love_assert(lua_checkstack(L, 3), "%s: failed to allocate stack space");
+		if (!lua_isfunction(L, -1))
+			luaL_typerror(L, lua_gettop(L), "function");
+		lua_pushvalue(L, 1);
+		lua_insert(L, 2);
+		lua_pushvalue(L, 1);
+		lua_insert(L, 3);
+		lua_insert(L, 2);
+		lua_getfield(L, 1, "tooltipBegin");
+		lua_insert(L, 4);
+		lua_call(L, 2, 1);
+		int open = lua_toboolean(L, -1);
+		lua_pop(L, 1);
+		if (open) {
+			lua_call(L, 1, 0);
+			lua_getfield(L, 1, "tooltipEnd");
+			lua_insert(L, 1);
+			lua_call(L, 1, 0);
+		}
+	} else {
+		nk_love_assert_argc(lua_gettop(L) == 2);
+		nk_love_assert_context(1);
+		const char *text = luaL_checkstring(L, 2);
+		nk_tooltip(&context->nkctx, text);
+	}
+	return 0;
+}
+
 static int nk_love_menubar_begin(lua_State *L)
 {
 	nk_love_assert_argc(lua_gettop(L) == 1);
@@ -3011,6 +3263,27 @@ static int nk_love_menubar_end(lua_State *L)
 	nk_love_assert_argc(lua_gettop(L) == 1);
 	nk_love_assert_context(1);
 	nk_menubar_end(&context->nkctx);
+	return 0;
+}
+
+static int nk_love_menubar(lua_State *L)
+{
+	nk_love_assert(lua_checkstack(L, 3), "%s: failed to allocate stack space");
+	nk_love_assert_argc(lua_gettop(L) == 2);
+	if (!lua_isfunction(L, -1))
+		luaL_typerror(L, lua_gettop(L), "function");
+	lua_pushvalue(L, 1);
+	lua_insert(L, 2);
+	lua_pushvalue(L, 1);
+	lua_insert(L, 3);
+	lua_insert(L, 2);
+	lua_getfield(L, 1, "menubarBegin");
+	lua_insert(L, 4);
+	lua_call(L, 1, 0);
+	lua_call(L, 1, 0);
+	lua_getfield(L, 1, "menubarEnd");
+	lua_insert(L, 1);
+	lua_call(L, 1, 0);
 	return 0;
 }
 
@@ -3090,6 +3363,31 @@ static int nk_love_menu_end(lua_State *L)
 	nk_love_assert_argc(lua_gettop(L) == 1);
 	nk_love_assert_context(1);
 	nk_menu_end(&context->nkctx);
+	return 0;
+}
+
+static int nk_love_menu(lua_State *L)
+{
+	nk_love_assert(lua_checkstack(L, 3), "%s: failed to allocate stack space");
+	nk_love_assert_argc(lua_gettop(L) == 6 || lua_gettop(L) == 7);
+	if (!lua_isfunction(L, -1))
+		luaL_typerror(L, lua_gettop(L), "function");
+	lua_pushvalue(L, 1);
+	lua_insert(L, 2);
+	lua_pushvalue(L, 1);
+	lua_insert(L, 3);
+	lua_insert(L, 2);
+	lua_getfield(L, 1, "menuBegin");
+	lua_insert(L, 4);
+	lua_call(L, lua_gettop(L) - 4, 1);
+	int open = lua_toboolean(L, -1);
+	lua_pop(L, 1);
+	if (open) {
+		lua_call(L, 1, 0);
+		lua_getfield(L, 1, "menuEnd");
+		lua_insert(L, 1);
+		lua_call(L, 1, 0);
+	}
 	return 0;
 }
 
@@ -4026,6 +4324,7 @@ LUALIB_API int luaopen_nuklear(lua_State *luaState)
 
 	NK_LOVE_REGISTER("frameBegin", nk_love_frame_begin);
 	NK_LOVE_REGISTER("frameEnd", nk_love_frame_end);
+	NK_LOVE_REGISTER("frame", nk_love_frame);
 
 	NK_LOVE_REGISTER("rotate", nk_love_rotate);
 	NK_LOVE_REGISTER("scale", nk_love_scale);
@@ -4034,6 +4333,7 @@ LUALIB_API int luaopen_nuklear(lua_State *luaState)
 
 	NK_LOVE_REGISTER("windowBegin", nk_love_window_begin);
 	NK_LOVE_REGISTER("windowEnd", nk_love_window_end);
+	NK_LOVE_REGISTER("window", nk_love_window);
 	NK_LOVE_REGISTER("windowGetBounds", nk_love_window_get_bounds);
 	NK_LOVE_REGISTER("windowGetPosition", nk_love_window_get_position);
 	NK_LOVE_REGISTER("windowGetSize", nk_love_window_get_size);
@@ -4063,9 +4363,11 @@ LUALIB_API int luaopen_nuklear(lua_State *luaState)
 	NK_LOVE_REGISTER("layoutTemplateBegin", nk_love_layout_template_begin);
 	NK_LOVE_REGISTER("layoutTemplatePush", nk_love_layout_template_push);
 	NK_LOVE_REGISTER("layoutTemplateEnd", nk_love_layout_template_end);
+	NK_LOVE_REGISTER("layoutTemplate", nk_love_layout_template);
 	NK_LOVE_REGISTER("layoutSpaceBegin", nk_love_layout_space_begin);
 	NK_LOVE_REGISTER("layoutSpacePush", nk_love_layout_space_push);
 	NK_LOVE_REGISTER("layoutSpaceEnd", nk_love_layout_space_end);
+	NK_LOVE_REGISTER("layoutSpace", nk_love_layout_space);
 	NK_LOVE_REGISTER("layoutSpaceBounds", nk_love_layout_space_bounds);
 	NK_LOVE_REGISTER("layoutSpaceToScreen", nk_love_layout_space_to_screen);
 	NK_LOVE_REGISTER("layoutSpaceToLocal", nk_love_layout_space_to_local);
@@ -4075,9 +4377,11 @@ LUALIB_API int luaopen_nuklear(lua_State *luaState)
 
 	NK_LOVE_REGISTER("groupBegin", nk_love_group_begin);
 	NK_LOVE_REGISTER("groupEnd", nk_love_group_end);
+	NK_LOVE_REGISTER("group", nk_love_group);
 
 	NK_LOVE_REGISTER("treePush", nk_love_tree_push);
 	NK_LOVE_REGISTER("treePop", nk_love_tree_pop);
+	NK_LOVE_REGISTER("tree", nk_love_tree);
 
 	NK_LOVE_REGISTER("label", nk_love_label);
 	NK_LOVE_REGISTER("image", nk_love_image);
@@ -4098,6 +4402,7 @@ LUALIB_API int luaopen_nuklear(lua_State *luaState)
 	NK_LOVE_REGISTER("popupBegin", nk_love_popup_begin);
 	NK_LOVE_REGISTER("popupClose", nk_love_popup_close);
 	NK_LOVE_REGISTER("popupEnd", nk_love_popup_end);
+	NK_LOVE_REGISTER("popup", nk_love_popup);
 	NK_LOVE_REGISTER("combobox", nk_love_combobox);
 	NK_LOVE_REGISTER("comboboxBegin", nk_love_combobox_begin);
 	NK_LOVE_REGISTER("comboboxItem", nk_love_combobox_item);
@@ -4107,15 +4412,18 @@ LUALIB_API int luaopen_nuklear(lua_State *luaState)
 	NK_LOVE_REGISTER("contextualItem", nk_love_contextual_item);
 	NK_LOVE_REGISTER("contextualClose", nk_love_contextual_close);
 	NK_LOVE_REGISTER("contextualEnd", nk_love_contextual_end);
+	NK_LOVE_REGISTER("contextual", nk_love_contextual);
 	NK_LOVE_REGISTER("tooltip", nk_love_tooltip);
 	NK_LOVE_REGISTER("tooltipBegin", nk_love_tooltip_begin);
 	NK_LOVE_REGISTER("tooltipEnd", nk_love_tooltip_end);
 	NK_LOVE_REGISTER("menubarBegin", nk_love_menubar_begin);
 	NK_LOVE_REGISTER("menubarEnd", nk_love_menubar_end);
+	NK_LOVE_REGISTER("menubar", nk_love_menubar);
 	NK_LOVE_REGISTER("menuBegin", nk_love_menu_begin);
 	NK_LOVE_REGISTER("menuItem", nk_love_menu_item);
 	NK_LOVE_REGISTER("menuClose", nk_love_menu_close);
 	NK_LOVE_REGISTER("menuEnd", nk_love_menu_end);
+	NK_LOVE_REGISTER("menu", nk_love_menu);
 
 	NK_LOVE_REGISTER("styleDefault", nk_love_style_default);
 	NK_LOVE_REGISTER("styleLoadColors", nk_love_style_load_colors);
