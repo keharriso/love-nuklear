@@ -3979,6 +3979,27 @@ static int nk_love_style_pop(lua_State *L)
 	return 0;
 }
 
+static int nk_love_style(lua_State *L)
+{
+	nk_love_assert(lua_checkstack(L, 3), "%s: failed to allocate stack space");
+	nk_love_assert_argc(lua_gettop(L) == 3);
+	if (!lua_isfunction(L, -1))
+		luaL_typerror(L, lua_gettop(L), "function");
+	lua_pushvalue(L, 1);
+	lua_insert(L, 2);
+	lua_pushvalue(L, 1);
+	lua_insert(L, 3);
+	lua_insert(L, 2);
+	lua_getfield(L, 1, "stylePush");
+	lua_insert(L, 4);
+	lua_call(L, 2, 0);
+	lua_call(L, 1, 0);
+	lua_getfield(L, 1, "stylePop");
+	lua_insert(L, 1);
+	lua_call(L, 1, 0);
+	return 0;
+}
+
 /*
  * ===============================================================
  *
@@ -4493,6 +4514,7 @@ LUALIB_API int luaopen_nuklear(lua_State *luaState)
 	NK_LOVE_REGISTER("styleSetFont", nk_love_style_set_font);
 	NK_LOVE_REGISTER("stylePush", nk_love_style_push);
 	NK_LOVE_REGISTER("stylePop", nk_love_style_pop);
+	NK_LOVE_REGISTER("style", nk_love_style);
 
 	NK_LOVE_REGISTER("widgetBounds", nk_love_widget_bounds);
 	NK_LOVE_REGISTER("widgetPosition", nk_love_widget_position);
