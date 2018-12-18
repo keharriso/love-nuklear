@@ -184,7 +184,7 @@ static void nk_love_checkImage(int index, struct nk_image *image)
 {
 	if (index < 0)
 		index += lua_gettop(L) + 1;
-	if (nk_love_is_type(index, "Image")) {
+	if (nk_love_is_type(index, "Image") || nk_love_is_type(index, "Canvas")) {
 		lua_getglobal(L, "love");
 		lua_getfield(L, -1, "graphics");
 		lua_getfield(L, -1, "newQuad");
@@ -206,14 +206,14 @@ static void nk_love_checkImage(int index, struct nk_image *image)
 		lua_createtable(L, 2, 0);
 		lua_rawgeti(L, index, 2);
 		lua_rawgeti(L, index, 1);
-		if (nk_love_is_type(-1, "Image") && nk_love_is_type(-2, "Quad")) {
+		if ((nk_love_is_type(-1, "Image") || nk_love_is_type(-1, "Canvas")) && nk_love_is_type(-2, "Quad")) {
 			lua_rawseti(L, -3, 1);
 			lua_rawseti(L, -2, 2);
 		} else {
-			luaL_argerror(L, index, "expecting {Image, Quad}");
+			luaL_argerror(L, index, "expecting {Image, Quad} or {Canvas, Quad}");
 		}
 	} else {
-		luaL_argerror(L, index, "expecting Image or {Image, Quad}");
+		luaL_argerror(L, index, "expecting Image or Canvas or {Image, Quad} or {Canvas, Quad}");
 	}
 	nk_love_pushregistry("image");
 	lua_pushvalue(L, -2);
