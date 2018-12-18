@@ -2411,6 +2411,65 @@ static int nk_love_tree(lua_State *L)
 	return 0;
 }
 
+static int nk_love_tree_state_push(lua_State *L)
+{
+	int argc = lua_gettop(L);
+	nk_love_assert_argc(argc >= 3 && argc <= 5);
+	nk_love_assert_context(1);
+	enum nk_tree_type type = nk_love_checktree(2);
+	const char *title = luaL_checkstring(L, 3);
+	struct nk_image image;
+	int use_image = 0;
+	if (argc >= 3 && !lua_isnil(L, 4)) {
+		nk_love_checkImage(4, &image);
+		use_image = 1;
+	}
+	enum nk_collapse_states state = NK_MINIMIZED;
+	if (argc >= 5)
+		state = nk_love_checkstate(5);
+
+	int open = 0;
+	if (use_image)
+		open = nk_tree_state_image_push(&context->nkctx, type, image, title, &state);
+	else
+		open = nk_tree_state_push(&context->nkctx, type, title, &state);
+	lua_pushboolean(L, open);
+	return 1;
+}
+
+static int nk_love_tree_state_pop(lua_State *L)
+{
+	nk_love_assert_argc(lua_gettop(L) == 1);
+	nk_love_assert_context(1);
+	nk_tree_state_pop(&context->nkctx);
+	return 0;
+}
+
+static int nk_love_tree_state(lua_State *L)
+{
+	nk_love_assert(lua_checkstack(L, 3), "%s: failed to allocate stack space");
+	nk_love_assert_argc(lua_gettop(L) >= 4);
+	if (!lua_isfunction(L, -1))
+		luaL_typerror(L, lua_gettop(L), "function");
+	lua_pushvalue(L, 1);
+	lua_insert(L, 2);
+	lua_pushvalue(L, 1);
+	lua_insert(L, 3);
+	lua_insert(L, 2);
+	lua_getfield(L, 1, "treeStatePush");
+	lua_insert(L, 4);
+	lua_call(L, lua_gettop(L) - 4, 1);
+	int open = lua_toboolean(L, -1);
+	lua_pop(L, 1);
+	if (open) {
+		lua_call(L, 1, 0);
+		lua_getfield(L, 1, "treeStatePop");
+		lua_insert(L, 1);
+		lua_call(L, 1, 0);
+	}
+	return 0;
+}
+
 static int nk_love_color_rgba(lua_State *L)
 {
 	int argc = lua_gettop(L);
@@ -4382,6 +4441,10 @@ LUALIB_API int luaopen_nuklear(lua_State *luaState)
 	NK_LOVE_REGISTER("treePush", nk_love_tree_push);
 	NK_LOVE_REGISTER("treePop", nk_love_tree_pop);
 	NK_LOVE_REGISTER("tree", nk_love_tree);
+
+	NK_LOVE_REGISTER("treeStatePush", nk_love_tree_state_push);
+	NK_LOVE_REGISTER("treeStatePop", nk_love_tree_state_pop);
+	NK_LOVE_REGISTER("treeState", nk_love_tree_state);
 
 	NK_LOVE_REGISTER("label", nk_love_label);
 	NK_LOVE_REGISTER("image", nk_love_image);
