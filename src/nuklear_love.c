@@ -2420,7 +2420,7 @@ static int nk_love_tree_state_push(lua_State *L)
 	const char *title = luaL_checkstring(L, 3);
 	struct nk_image image;
 	int use_image = 0;
-	if (argc >= 3 && !lua_isnil(L, 4)) {
+	if (argc >= 4 && !lua_isnil(L, 4)) {
 		nk_love_checkImage(4, &image);
 		use_image = 1;
 	}
