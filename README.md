@@ -91,12 +91,17 @@ Next, you need to compile the code to a native Lua module.
 1. First, ensure you have the `cmake` and `luajit` packages installed.
 2. Create a new folder next to `love-nuklear` called `love-nuklear-build`.
 3. Open a terminal inside `love-nuklear-build`.
-4. Compile with
+4. Run CMake with:
 ```sh
-$ cmake ../love-nuklear
+$ cmake -DCMAKE_BUILD_TYPE=Release ../love-nuklear
+$ ccmake .
+```
+5. Press `c`, then `g`
+6. Make the library with:
+```sh
 $ make
 ```
-5. Locate `nuklear.so` in the build folder.
+7. Locate `nuklear.so` in the build folder.
 
 ### Compiling with CMake and MinGW on Windows
 
