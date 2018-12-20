@@ -91,7 +91,7 @@ Next, you need to compile the code to a native Lua module.
 1. First, ensure you have the `cmake` and `luajit` packages installed.
 2. Create a new folder next to `love-nuklear` called `love-nuklear-build`.
 3. Open a terminal inside `love-nuklear-build`.
-4. Compile the library with:
+4. Compile the library with
 ```sh
 $ cmake -DCMAKE_BUILD_TYPE=Release ../love-nuklear
 $ make
