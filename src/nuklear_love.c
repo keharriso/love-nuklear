@@ -1035,7 +1035,7 @@ static int nk_love_keyevent(struct nk_context *ctx, const char *key,
 }
 
 static int nk_love_clickevent(struct nk_love_context *ctx, int x, int y,
-	int button, int istouch, int down)
+	int button, int istouch, int presses, int down)
 {
 	nk_love_transform(ctx->Ti, &x, &y);
 	struct nk_context *nkctx = &ctx->nkctx;
@@ -1161,26 +1161,28 @@ static int nk_love_keyreleased(lua_State *L)
 
 static int nk_love_mousepressed(lua_State *L)
 {
-	nk_love_assert_argc(lua_gettop(L) == 5);
+	nk_love_assert_argc(lua_gettop(L) == 5 || lua_gettop(L) == 6);
 	struct nk_love_context *ctx = nk_love_checkcontext(1);
 	int x = luaL_checkint(L, 2);
 	int y = luaL_checkint(L, 3);
 	int button = luaL_checkint(L, 4);
 	int istouch = nk_love_checkboolean(L, 5);
-	int consume = nk_love_clickevent(ctx, x, y, button, istouch, 1);
+	int presses = lua_gettop(L) == 6 ? luaL_checkint(L, 6) : 1;
+	int consume = nk_love_clickevent(ctx, x, y, button, istouch, presses, 1);
 	lua_pushboolean(L, consume);
 	return 1;
 }
 
 static int nk_love_mousereleased(lua_State *L)
 {
-	nk_love_assert_argc(lua_gettop(L) == 5);
+	nk_love_assert_argc(lua_gettop(L) == 5 || lua_gettop(L) == 6);
 	struct nk_love_context *ctx = nk_love_checkcontext(1);
 	int x = luaL_checkint(L, 2);
 	int y = luaL_checkint(L, 3);
 	int button = luaL_checkint(L, 4);
 	int istouch = nk_love_checkboolean(L, 5);
-	int consume = nk_love_clickevent(ctx, x, y, button, istouch, 0);
+	int presses = lua_gettop(L) == 6 ? luaL_checkint(L, 6) : 1;
+	int consume = nk_love_clickevent(ctx, x, y, button, istouch, presses, 0);
 	lua_pushboolean(L, consume);
 	return 1;
 }
