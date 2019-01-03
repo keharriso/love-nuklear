@@ -3910,6 +3910,9 @@ static int nk_love_style_push(lua_State *L)
 	struct nk_love_context *ctx = nk_love_checkcontext(1);
 	if (!lua_istable(L, 2))
 		luaL_typerror(L, 2, "table");
+	int outOfContext = (context == NULL);
+	if (outOfContext)
+		context = ctx;
 	lua_newtable(L);
 	lua_insert(L, 2);
 	NK_LOVE_STYLE_PUSH("font", font, &ctx->nkctx.style.font);
@@ -3938,6 +3941,8 @@ static int nk_love_style_push(lua_State *L)
 	size_t stack_size = lua_objlen(L, -1);
 	lua_pushvalue(L, 2);
 	lua_rawseti(L, -2, stack_size + 1);
+	if (outOfContext)
+		context = NULL;
 	return 0;
 }
 
@@ -3945,6 +3950,9 @@ static int nk_love_style_pop(lua_State *L)
 {
 	nk_love_assert_argc(lua_gettop(L) == 1);
 	struct nk_love_context *ctx = nk_love_checkcontext(1);
+	int outOfContext = (context == NULL);
+	if (outOfContext)
+		context = ctx;
 	lua_getfield(L, LUA_REGISTRYINDEX, "nuklear");
 	lua_pushlightuserdata(L, ctx);
 	lua_gettable(L, -2);
@@ -3976,6 +3984,8 @@ static int nk_love_style_pop(lua_State *L)
 		}
 		lua_pop(L, 1);
 	}
+	if (outOfContext)
+		context = NULL;
 	return 0;
 }
 
