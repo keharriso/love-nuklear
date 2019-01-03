@@ -54,12 +54,12 @@ function love.keyreleased(key, scancode)
 	ui:keyreleased(key, scancode)
 end
 
-function love.mousepressed(x, y, button, istouch)
-	ui:mousepressed(x, y, button, istouch)
+function love.mousepressed(x, y, button, istouch, presses)
+	ui:mousepressed(x, y, button, istouch, presses)
 end
 
-function love.mousereleased(x, y, button, istouch)
-	ui:mousereleased(x, y, button, istouch)
+function love.mousereleased(x, y, button, istouch, presses)
+	ui:mousereleased(x, y, button, istouch, presses)
 end
 
 function love.mousemoved(x, y, dx, dy, istouch)
