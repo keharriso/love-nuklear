@@ -88,7 +88,7 @@ Next, you need to compile the code to a native Lua module.
 
 ### Compiling with CMake on Linux
 
-1. First, ensure you have the `cmake` and `luajit` packages installed.
+1. First, ensure you have the `cmake` and `luajit` packages installed, as well as `libluajit-5.1-dev` if your distro has this package.
 2. Create a new folder next to `love-nuklear` called `love-nuklear-build`.
 3. Open a terminal inside `love-nuklear-build`.
 4. Compile the library with
