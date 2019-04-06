@@ -81,14 +81,14 @@ Windows binaries are available for each [release](https://github.com/keharriso/l
 
 To build the library yourself, grab the code with:
 ```sh
-$ git clone --recursive git@github.com:keharriso/love-nuklear.git
+$ git clone --recursive https://github.com/keharriso/love-nuklear.git
 ```
 
 Next, you need to compile the code to a native Lua module.
 
 ### Compiling with CMake on Linux
 
-1. First, ensure you have the `cmake` and `luajit` packages installed, as well as `libluajit-5.1-dev` if your distro has this package.
+1. First, ensure you have a C compiler and the `cmake` and `luajit` or `lua51-luajit` (for openSUSE) packages installed, as well as `libluajit-5.1-dev` (for Ubuntu/Debian), `luajit-devel` (for Fedora), or `lua51-luajit-devel` (for openSUSE) if your distro has one of these packages.
 2. Create a new folder next to `love-nuklear` called `love-nuklear-build`.
 3. Open a terminal inside `love-nuklear-build`.
 4. Compile the library with
@@ -96,7 +96,7 @@ Next, you need to compile the code to a native Lua module.
 $ cmake -DCMAKE_BUILD_TYPE=Release ../love-nuklear
 $ make
 ```
-7. Locate `nuklear.so` in the build folder.
+5. Locate `nuklear.so` in the build folder.
 
 ### Compiling with CMake and MinGW on Windows
 
