@@ -604,7 +604,7 @@ static void nk_love_scissor(int x, int y, int w, int h)
 {
 	lua_getglobal(L, "love");
 	lua_getfield(L, -1, "graphics");
-	lua_getfield(L, -1, "setScissor");
+	lua_getfield(L, -1, "intersectScissor");
 	int x1 = x, y1 = y, x2 = x + w, y2 = y, x3 = x, y3 = y + h, x4 = x + w, y4 = y + h;
 	nk_love_transform(context->T, &x1, &y1);
 	nk_love_transform(context->T, &x2, &y2);
