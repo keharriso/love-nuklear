@@ -600,11 +600,11 @@ static void nk_love_getGraphics(float *line_thickness, struct nk_color *color)
 	lua_pop(L, 6);
 }
 
-static void nk_love_scissor(int x, int y, int w, int h)
+static void nk_love_scissor(int x, int y, int w, int h, int *px, int *py, int *pw, int *ph)
 {
 	lua_getglobal(L, "love");
 	lua_getfield(L, -1, "graphics");
-	lua_getfield(L, -1, "setScissor");
+    	lua_getfield(L, -1, "setScissor");
 	int x1 = x, y1 = y, x2 = x + w, y2 = y, x3 = x, y3 = y + h, x4 = x + w, y4 = y + h;
 	nk_love_transform(context->T, &x1, &y1);
 	nk_love_transform(context->T, &x2, &y2);
@@ -614,10 +614,16 @@ static void nk_love_scissor(int x, int y, int w, int h)
 	int top = NK_MIN(NK_MIN(y1, y2), NK_MIN(y3, y4));
 	int right = NK_MAX(NK_MAX(x1, x2), NK_MAX(x3, x4));
 	int bottom = NK_MAX(NK_MAX(y1, y2), NK_MAX(y3, y4));
+	if (px) {
+		left = NK_MAX(left, *px);
+		top = NK_MAX(top, *py);
+		right = NK_MIN(right, *px + *pw);
+		bottom = NK_MIN(bottom, *py + *ph);
+	}
 	lua_pushnumber(L, left);
 	lua_pushnumber(L, top);
-	lua_pushnumber(L, right - left);
-	lua_pushnumber(L, bottom - top);
+	lua_pushnumber(L, NK_MAX(0, right - left));
+	lua_pushnumber(L, NK_MAX(0, bottom - top));
 	lua_call(L, 4, 0);
 	lua_pop(L, 2);
 }
@@ -1230,6 +1236,19 @@ static int nk_love_draw(lua_State *L)
 	lua_getglobal(L, "love");
 	lua_getfield(L, -1, "graphics");
 
+	int x = 0, y = 0, w = 0, h = 0;
+	char scissor_enabled = 0;
+	lua_getfield(L, -1, "getScissor");
+	lua_call(L, 0, 4);
+	if (!lua_isnil(L, -4)) {
+		x = lua_tonumber(L, -4);
+		y = lua_tonumber(L, -3);
+		w = lua_tonumber(L, -2);
+		h = lua_tonumber(L, -1);
+		scissor_enabled = 1;
+	}
+	lua_pop(L, 4);
+	
 	lua_getfield(L, -1, "push");
 	lua_pushstring(L, "all");
 	lua_call(L, 1, 0);
@@ -1259,7 +1278,12 @@ static int nk_love_draw(lua_State *L)
 		case NK_COMMAND_NOP: break;
 		case NK_COMMAND_SCISSOR: {
 			const struct nk_command_scissor *s =(const struct nk_command_scissor*)cmd;
-			nk_love_scissor(s->x, s->y, s->w, s->h);
+			if (scissor_enabled)
+			{
+				nk_love_scissor(s->x, s->y, s->w, s->h, &x, &y, &w, &h);
+			} else {
+				nk_love_scissor(s->x, s->y, s->w, s->h, NULL, NULL, NULL, NULL);
+			}
 		} break;
 		case NK_COMMAND_LINE: {
 			const struct nk_command_line *l = (const struct nk_command_line *)cmd;
