@@ -600,7 +600,8 @@ static void nk_love_getGraphics(float *line_thickness, struct nk_color *color)
 	lua_pop(L, 6);
 }
 
-static void nk_love_scissor(int x, int y, int w, int h)
+static void nk_love_scissor(int x, int y, int w, int h,
+		int nested, int px, int py, int pw, int ph)
 {
 	lua_getglobal(L, "love");
 	lua_getfield(L, -1, "graphics");
@@ -614,10 +615,16 @@ static void nk_love_scissor(int x, int y, int w, int h)
 	int top = NK_MIN(NK_MIN(y1, y2), NK_MIN(y3, y4));
 	int right = NK_MAX(NK_MAX(x1, x2), NK_MAX(x3, x4));
 	int bottom = NK_MAX(NK_MAX(y1, y2), NK_MAX(y3, y4));
+	if (nested) {
+		left = NK_MAX(left, px);
+		top = NK_MAX(top, py);
+		right = NK_MIN(right, px + pw);
+		bottom = NK_MIN(bottom, py + ph);
+	}
 	lua_pushnumber(L, left);
 	lua_pushnumber(L, top);
-	lua_pushnumber(L, right - left);
-	lua_pushnumber(L, bottom - top);
+	lua_pushnumber(L, NK_MAX(0, right - left));
+	lua_pushnumber(L, NK_MAX(0, bottom - top));
 	lua_call(L, 4, 0);
 	lua_pop(L, 2);
 }
@@ -1237,6 +1244,19 @@ static int nk_love_draw(lua_State *L)
 	lua_getfield(L, -1, "origin");
 	lua_call(L, 0, 0);
 
+	int nest_scissor = 0;
+	int px = 0, py = 0, pw = 0, ph = 0;
+	lua_getfield(L, -1, "getScissor");
+	lua_call(L, 0, 4);
+	if (lua_isnumber(L, -4)) {
+		nest_scissor = 1;
+		px = lua_tonumber(L, -4);
+		py = lua_tonumber(L, -3);
+		pw = lua_tonumber(L, -2);
+		ph = lua_tonumber(L, -1);
+	}
+	lua_pop(L, 4);
+
 	nk_love_pushregistry("transform");
 	size_t transform_count = lua_objlen(L, -1);
 	size_t i, j;
@@ -1259,7 +1279,7 @@ static int nk_love_draw(lua_State *L)
 		case NK_COMMAND_NOP: break;
 		case NK_COMMAND_SCISSOR: {
 			const struct nk_command_scissor *s =(const struct nk_command_scissor*)cmd;
-			nk_love_scissor(s->x, s->y, s->w, s->h);
+			nk_love_scissor(s->x, s->y, s->w, s->h, nest_scissor, px, py, pw, ph);
 		} break;
 		case NK_COMMAND_LINE: {
 			const struct nk_command_line *l = (const struct nk_command_line *)cmd;
