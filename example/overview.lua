@@ -11,6 +11,7 @@ local colorPicker = {value = '#ff0000'}
 local property = {value = 6}
 local edit = {value = 'Edit text'}
 local comboA = {value = 1, items = {'A', 'B', 'C'}}
+local scissorActive = false
 
 return function (ui)
 	if ui:windowBegin('Overview', 100, 100, 600, 450, 'border', 'movable', 'title') then
@@ -49,6 +50,9 @@ return function (ui)
 			ui:spacing(1)
 			ui:checkbox('Checkbox A', checkA)
 			ui:checkbox('Checkbox B', checkB)
+			if ui:button('Scissor') then
+		                scissorActive = not scissorActive
+		        end
 			ui:groupEnd()
 		end
 		if ui:groupBegin('Group 2', 'border') then
@@ -104,4 +108,11 @@ return function (ui)
 		end
 	end
 	ui:windowEnd()
+	if(scissorActive) then
+		love.graphics.setScissor()
+		love.graphics.clear()
+		love.graphics.setScissor(130, 130, 500, 400)
+	else
+		love.graphics.setScissor()
+	end
 end
