@@ -39,7 +39,6 @@
 #define NK_LOVE_COMBOBOX_MAX_ITEMS 1024
 #define NK_LOVE_MAX_FONTS 1024
 #define NK_LOVE_MAX_RATIOS 1024
-#define NK_LOVE_GRADIENT_RESOLUTION 32
 
 static lua_State *L;
 static char *edit_buffer;
@@ -1848,6 +1847,17 @@ static int nk_love_window_get_size(lua_State *L)
 	return 2;
 }
 
+static int nk_love_window_get_scroll(lua_State *L)
+{
+	nk_love_assert_argc(lua_gettop(L) == 1);
+	nk_love_assert_context(1);
+	nk_uint offset_x, offset_y;
+	nk_window_get_scroll(&context->nkctx, &offset_x, &offset_y);
+	lua_pushinteger(L, offset_x);
+	lua_pushinteger(L, offset_y);
+	return 2;
+}
+
 static int nk_love_window_get_content_region(lua_State *L)
 {
 	nk_love_assert_argc(lua_gettop(L) == 1);
@@ -1979,6 +1989,17 @@ static int nk_love_window_set_focus(lua_State *L)
 	nk_love_assert_context(1);
 	const char *name = luaL_checkstring(L, 2);
 	nk_window_set_focus(&context->nkctx, name);
+	return 0;
+}
+
+static int nk_love_window_set_scroll(lua_State *L)
+{
+	nk_love_assert_argc(lua_gettop(L) == 3);
+	nk_love_assert_context(1);
+	nk_uint offset_x, offset_y;
+	offset_x = luaL_checkinteger(L, 2);
+	offset_y = luaL_checkinteger(L, 3);
+	nk_window_set_scroll(&context->nkctx, offset_x, offset_y);
 	return 0;
 }
 
@@ -2368,6 +2389,29 @@ static int nk_love_group(lua_State *L)
 	} else {
 		lua_pop(L, 3);
 	}
+	return 0;
+}
+
+static int nk_love_group_get_scroll(lua_State *L)
+{
+	nk_love_assert_argc(lua_gettop(L) == 2);
+	nk_love_assert_context(1);
+	const char *id = luaL_checkstring(L, 2);
+	nk_uint x_offset, y_offset;
+	nk_group_get_scroll(&context->nkctx, id, &x_offset, &y_offset);
+	lua_pushinteger(L, x_offset);
+	lua_pushinteger(L, y_offset);
+	return 2;
+}
+
+static int nk_love_group_set_scroll(lua_State *L)
+{
+	nk_love_assert_argc(lua_gettop(L) == 4);
+	nk_love_assert_context(1);
+	const char *id = luaL_checkstring(L, 2);
+	nk_uint x_offset = luaL_checkint(L, 3);
+	nk_uint y_offset = luaL_checkint(L, 4);
+	nk_group_set_scroll(&context->nkctx, id, x_offset, y_offset);
 	return 0;
 }
 
@@ -3020,6 +3064,28 @@ static int nk_love_popup(lua_State *L)
 	return 0;
 }
 
+static int nk_love_popup_get_scroll(lua_State *L)
+{
+	nk_love_assert_argc(lua_gettop(L) == 1);
+	nk_love_assert_context(1);
+	nk_uint offset_x, offset_y;
+	nk_popup_get_scroll(&context->nkctx, &offset_x, &offset_y);
+	lua_pushinteger(L, offset_x);
+	lua_pushinteger(L, offset_y);
+	return 2;
+}
+
+static int nk_love_popup_set_scroll(lua_State *L)
+{
+	nk_love_assert_argc(lua_gettop(L) == 3);
+	nk_love_assert_context(1);
+	nk_uint offset_x, offset_y;
+	offset_x = luaL_checkinteger(L, 2);
+	offset_y = luaL_checkinteger(L, 3);
+	nk_popup_set_scroll(&context->nkctx, offset_x, offset_y);
+	return 0;
+}
+
 static int nk_love_combobox(lua_State *L)
 {
 	int argc = lua_gettop(L);
@@ -3067,14 +3133,14 @@ static int nk_love_combobox(lua_State *L)
 	if (argc >= 6 && !lua_isnil(L, 6))
 		size.y = luaL_checknumber(L, 6);
 	if (lua_isnumber(L, 2)) {
-		int value = lua_tointeger(L, 2) - 1;
+		int value = luaL_checkinteger(L, 2) - 1;
 		value = nk_combo(&context->nkctx, combobox_items, i, value, item_height, size);
 		lua_pushnumber(L, value + 1);
 	} else if (lua_istable(L, 2)) {
 		lua_getfield(L, 2, "value");
 		if (!lua_isnumber(L, -1))
 			luaL_argerror(L, 2, "should have a number value");
-		int value = lua_tointeger(L, -1) - 1;
+		int value = luaL_checkinteger(L, -1) - 1;
 		int old = value;
 		nk_combobox(&context->nkctx, combobox_items, i, &value, item_height, size);
 		int changed = value != old;
@@ -4449,6 +4515,7 @@ LUALIB_API int luaopen_nuklear(lua_State *luaState)
 	NK_LOVE_REGISTER("windowGetBounds", nk_love_window_get_bounds);
 	NK_LOVE_REGISTER("windowGetPosition", nk_love_window_get_position);
 	NK_LOVE_REGISTER("windowGetSize", nk_love_window_get_size);
+	NK_LOVE_REGISTER("windowGetScroll", nk_love_window_get_scroll);
 	NK_LOVE_REGISTER("windowGetContentRegion", nk_love_window_get_content_region);
 	NK_LOVE_REGISTER("windowHasFocus", nk_love_window_has_focus);
 	NK_LOVE_REGISTER("windowIsCollapsed", nk_love_window_is_collapsed);
@@ -4462,6 +4529,7 @@ LUALIB_API int luaopen_nuklear(lua_State *luaState)
 	NK_LOVE_REGISTER("windowSetPosition", nk_love_window_set_position);
 	NK_LOVE_REGISTER("windowSetSize", nk_love_window_set_size);
 	NK_LOVE_REGISTER("windowSetFocus", nk_love_window_set_focus);
+	NK_LOVE_REGISTER("windowSetScroll", nk_love_window_set_scroll);
 	NK_LOVE_REGISTER("windowClose", nk_love_window_close);
 	NK_LOVE_REGISTER("windowCollapse", nk_love_window_collapse);
 	NK_LOVE_REGISTER("windowExpand", nk_love_window_expand);
@@ -4490,6 +4558,8 @@ LUALIB_API int luaopen_nuklear(lua_State *luaState)
 	NK_LOVE_REGISTER("groupBegin", nk_love_group_begin);
 	NK_LOVE_REGISTER("groupEnd", nk_love_group_end);
 	NK_LOVE_REGISTER("group", nk_love_group);
+	NK_LOVE_REGISTER("groupGetScroll", nk_love_group_get_scroll);
+	NK_LOVE_REGISTER("groupSetScroll", nk_love_group_set_scroll);
 
 	NK_LOVE_REGISTER("treePush", nk_love_tree_push);
 	NK_LOVE_REGISTER("treePop", nk_love_tree_pop);
@@ -4519,6 +4589,8 @@ LUALIB_API int luaopen_nuklear(lua_State *luaState)
 	NK_LOVE_REGISTER("popupClose", nk_love_popup_close);
 	NK_LOVE_REGISTER("popupEnd", nk_love_popup_end);
 	NK_LOVE_REGISTER("popup", nk_love_popup);
+	NK_LOVE_REGISTER("popupGetScroll", nk_love_popup_get_scroll);
+	NK_LOVE_REGISTER("popupSetScroll", nk_love_popup_set_scroll);
 	NK_LOVE_REGISTER("combobox", nk_love_combobox);
 	NK_LOVE_REGISTER("comboboxBegin", nk_love_combobox_begin);
 	NK_LOVE_REGISTER("comboboxItem", nk_love_combobox_item);
