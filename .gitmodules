@@ -1,3 +1,3 @@
 [submodule "src/nuklear"]
 	path = src/nuklear
-	url = https://github.com/vurtun/nuklear.git
+	url = https://github.com/Immediate-Mode-UI/Nuklear.git
