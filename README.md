@@ -98,6 +98,13 @@ $ make
 ```
 5. Locate `nuklear.so` in the build folder.
 
+#### Via GNU Guix
+
+LÖVE-Nuklear is also available as a [Guix](http://guix.gnu.org/) package, and can thus be directly downloaded and built via:
+```
+$ guix package --install love-nuklear
+```
+
 ### Compiling with CMake and MinGW on Windows
 
 1. Install [CMake](https://cmake.org/download/) and [MinGW](http://mingw.org/) or [MinGW-w64](https://mingw-w64.org/doku.php).
