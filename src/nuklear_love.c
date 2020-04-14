@@ -3865,7 +3865,7 @@ static void nk_love_style_push_progress(struct nk_style_progress *style)
 	NK_LOVE_STYLE_PUSH("border color", color, &style->border_color);
 	NK_LOVE_STYLE_PUSH("cursor normal", item, &style->cursor_normal);
 	NK_LOVE_STYLE_PUSH("cursor hover", item, &style->cursor_hover);
-	NK_LOVE_STYLE_PUSH("cusor active", item, &style->cursor_active);
+	NK_LOVE_STYLE_PUSH("cursor active", item, &style->cursor_active);
 	NK_LOVE_STYLE_PUSH("cursor border color", color, &style->cursor_border_color);
 	NK_LOVE_STYLE_PUSH("rounding", float, &style->rounding);
 	NK_LOVE_STYLE_PUSH("border", float, &style->border);
