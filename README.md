@@ -1,6 +1,6 @@
 # LÖVE-Nuklear
 
-[Nuklear](https://github.com/vurtun/nuklear) module for the [LÖVE](https://love2d.org/) game engine.
+[Nuklear](https://github.com/Immediate-Mode-UI/Nuklear) module for the [LÖVE](https://love2d.org/) game engine.
 
 Provides a lightweight immediate mode GUI for LÖVE games.
 
