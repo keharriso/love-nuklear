@@ -2181,6 +2181,7 @@ static int nk_love_layout_template_end(lua_State *L)
 	nk_love_assert_argc(lua_gettop(L) == 1);
 	nk_love_assert_context(1);
 	nk_layout_row_template_end(&context->nkctx);
+	return 0;
 }
 
 static int nk_love_layout_template(lua_State *L)
