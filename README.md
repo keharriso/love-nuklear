@@ -132,6 +132,22 @@ $ mingw32-make
 ```
 18. Locate `nuklear.dll` inside the build folder.
 
+### Compiling with CMake and MSVC on Windows
+
+1. Install [CMake](https://cmake.org/download/) and [Visual Studio](https://visualstudio.microsoft.com/).
+Community or Express edition is sufficient.
+2. Download the source code for [LuaJIT](http://luajit.org/download.html).
+3. Open a Visual Studio Command Prompt (x86 or x64 depending on what architecture you need)
+and set the current directory to the LuaJIT folder (the one that contains "README"). Also
+remember this path.
+4. At the VS Command Prompt, set your current directory to `src` then
+execute `msvcbuild.bat`. This will create lua51.dll, lua51.lib, and luajit.exe
+5. Now open new command prompt window inside the `love-nuklear` folder.
+6. Type `set "LUA_DIR=<path to directory at step 3>"`
+7. Then type `cmake -Bbuild -H. -A Win32 -DLUA_INCLUDE_DIR=%LUA_DIR%\src -DLUA_LIBRARY=%LUA_DIR%\src\lua51.lib -DCMAKE_INSTALL_PREFIX=%CD%\install`.
+If you previously compile LuaJIT using x64 VS command prompt, replace `Win32` with `x64` at above command.
+8. Then type `cmake --build build --config Release --target install` and you'll found `nuklear.dll` inside "install" folder.
+
 ## Documentation
 
 A complete description of all functions and style properties, alongside additional examples, is available at the [LÖVE-Nuklear wiki](https://github.com/keharriso/love-nuklear/wiki).
