@@ -14,6 +14,7 @@ local transform = require 'transform'
 local ui1, ui2
 
 function love.load()
+	love.keyboard.setKeyRepeat(true)
 	ui1, ui2 = nuklear.newUI(), nuklear.newUI()
 end
 
