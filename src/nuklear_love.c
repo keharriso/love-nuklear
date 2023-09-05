@@ -3681,7 +3681,26 @@ static int nk_love_style_push_item(lua_State *L, struct nk_style_item *field)
 		}
 		item.type = NK_STYLE_ITEM_COLOR;
 		item.data.color = nk_love_checkcolor(L, -1);
-	} else {
+	} else if (lua_istable(L, -1) && lua_objlen(L, -1) == 6) {
+		item.type = NK_STYLE_ITEM_NINE_SLICE;
+
+		int index = lua_gettop(L);
+		nk_love_checkImage(L, -1, &item.data.slice.img);
+
+		lua_rawgeti(L, index, 3);
+		item.data.slice.l = lua_tointeger(L, -1);
+
+		lua_rawgeti(L, index, 4);
+		item.data.slice.t = lua_tointeger(L, -1);
+
+		lua_rawgeti(L, index, 5);
+		item.data.slice.r = lua_tointeger(L, -1);
+
+		lua_rawgeti(L, index, 6);
+		item.data.slice.b = lua_tointeger(L, -1);
+		lua_pop(L, 4);
+	}
+	else {
 		item.type = NK_STYLE_ITEM_IMAGE;
 		nk_love_checkImage(L, -1, &item.data.image);
 	}
