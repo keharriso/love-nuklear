@@ -1285,7 +1285,7 @@ static int nk_love_new_ui(lua_State *L)
 	context = ctx;
 	nk_love_checkFont(L, -1, &ctx->fonts[0]);
 	context = current;
-	nk_init_default(&ctx->nkctx, &ctx->fonts[0].font);
+	nk_init_default(&ctx->nkctx, &ctx->fonts[0].nk_font);
 	ctx->font_count = 1;
 	ctx->nkctx.clip.copy = nk_love_clipboard_copy;
 	ctx->nkctx.clip.paste = nk_love_clipboard_paste;
