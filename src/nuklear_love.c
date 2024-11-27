@@ -54,7 +54,7 @@ static struct nk_love_handle
 
 static struct nk_love_font
 {
-	struct nk_user_font font;
+	struct nk_user_font nk_font;
 	struct nk_love_handle handle;
 };
 
@@ -196,9 +196,9 @@ static void nk_love_checkFont(lua_State *L, int index, struct nk_love_font *font
 	float height = lua_tonumber(L, -1);
 	font->handle.L = L;
 	font->handle.ref = ref;
-	font->font.userdata.ptr = &font->handle;
-	font->font.height = height;
-	font->font.width = nk_love_get_text_width;
+	font->nk_font.userdata.ptr = &font->handle;
+	font->nk_font.height = height;
+	font->nk_font.width = nk_love_get_text_width;
 	lua_pop(L, 2);
 }
 
