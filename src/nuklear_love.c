@@ -1738,7 +1738,7 @@ static int nk_love_frame_begin(lua_State *L)
 		lua_rawgeti(L, -1, love_handle->ref);
 		nk_love_checkFont(L, -1, &context->fonts[context->font_count]);
 		lua_pop(L, 1);
-		context->nkctx.stacks.fonts.elements[i].old_value = &context->fonts[context->font_count++];
+		context->nkctx.stacks.fonts.elements[i].old_value = (const struct nk_user_font *)&context->fonts[context->font_count++];
 	}
 	lua_pop(L, 1);
 	context->layout_ratio_count = 0;
