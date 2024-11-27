@@ -46,17 +46,20 @@ static char *edit_buffer;
 static const char **combobox_items;
 static float *points;
 
-static struct nk_love_handle {
+static struct nk_love_handle
+{
 	lua_State *L;
 	int ref;
 };
 
-static struct nk_love_font {
+static struct nk_love_font
+{
 	struct nk_user_font font;
 	struct nk_love_handle handle;
 };
 
-static struct nk_love_context {
+static struct nk_love_context
+{
 	struct nk_context nkctx;
 	struct nk_love_font *fonts;
 	int font_count;
@@ -69,7 +72,8 @@ static struct nk_love_context {
 
 static void nk_love_assert(lua_State *L, int pass, const char *msg)
 {
-	if (!pass) {
+	if (!pass)
+	{
 		lua_Debug ar;
 		ar.name = NULL;
 		if (lua_getstack(L, 0, &ar))
@@ -101,7 +105,8 @@ static struct nk_love_context *nk_love_checkcontext(lua_State *L, int index)
 {
 	if (index < 0)
 		index += lua_gettop(L) + 1;
-	if (lua_isuserdata(L, index)) {
+	if (lua_isuserdata(L, index))
+	{
 		lua_getfield(L, LUA_REGISTRYINDEX, "nuklear");
 		lua_getfield(L, -1, "metatable");
 		lua_getmetatable(L, index);
@@ -124,7 +129,7 @@ static void nk_love_assert_transform(lua_State *L)
 {
 	struct nk_love_context *ctx = nk_love_checkcontext(L, 1);
 	nk_love_assert(L, ctx == context && ctx->transform_allowed,
-		"%s: UI transformations must occur directly after ui:frameBegin");
+				   "%s: UI transformations must occur directly after ui:frameBegin");
 }
 
 static void nk_love_pushregistry(lua_State *L, const char *name)
@@ -141,13 +146,16 @@ static int nk_love_is_type(lua_State *L, int index, const char *type)
 {
 	if (index < 0)
 		index += lua_gettop(L) + 1;
-	if (lua_isuserdata(L, index)) {
+	if (lua_isuserdata(L, index))
+	{
 		lua_getfield(L, index, "typeOf");
-		if (lua_isfunction(L, -1)) {
+		if (lua_isfunction(L, -1))
+		{
 			lua_pushvalue(L, index);
 			lua_pushstring(L, type);
 			lua_call(L, 2, 1);
-			if (lua_isboolean(L, -1)) {
+			if (lua_isboolean(L, -1))
+			{
 				int is_type = lua_toboolean(L, -1);
 				lua_pop(L, 1);
 				return is_type;
@@ -158,7 +166,7 @@ static int nk_love_is_type(lua_State *L, int index, const char *type)
 }
 
 static float nk_love_get_text_width(nk_handle handle, float height,
-	const char *text, int len)
+									const char *text, int len)
 {
 	struct nk_love_handle *love_handle = handle.ptr;
 	lua_State *L = love_handle->L;
@@ -198,7 +206,8 @@ static void nk_love_checkImage(lua_State *L, int index, struct nk_image *image)
 {
 	if (index < 0)
 		index += lua_gettop(L) + 1;
-	if (nk_love_is_type(L, index, "Image") || nk_love_is_type(L, index, "Canvas")) {
+	if (nk_love_is_type(L, index, "Image") || nk_love_is_type(L, index, "Canvas"))
+	{
 		lua_getglobal(L, "love");
 		lua_getfield(L, -1, "graphics");
 		lua_getfield(L, -1, "newQuad");
@@ -216,17 +225,24 @@ static void nk_love_checkImage(lua_State *L, int index, struct nk_image *image)
 		lua_replace(L, -3);
 		lua_rawseti(L, -2, 2);
 		lua_replace(L, -2);
-	} else if (lua_istable(L, index)) {
+	}
+	else if (lua_istable(L, index))
+	{
 		lua_createtable(L, 2, 0);
 		lua_rawgeti(L, index, 2);
 		lua_rawgeti(L, index, 1);
-		if ((nk_love_is_type(L, -1, "Image") || nk_love_is_type(L, -1, "Canvas")) && nk_love_is_type(L, -2, "Quad")) {
+		if ((nk_love_is_type(L, -1, "Image") || nk_love_is_type(L, -1, "Canvas")) && nk_love_is_type(L, -2, "Quad"))
+		{
 			lua_rawseti(L, -3, 1);
 			lua_rawseti(L, -2, 2);
-		} else {
+		}
+		else
+		{
 			luaL_argerror(L, index, "expecting {Image, Quad} or {Canvas, Quad}");
 		}
-	} else {
+	}
+	else
+	{
 		luaL_argerror(L, index, "expecting Image or Canvas or {Image, Quad} or {Canvas, Quad}");
 	}
 	nk_love_pushregistry(L, "image");
@@ -238,21 +254,22 @@ static void nk_love_checkImage(lua_State *L, int index, struct nk_image *image)
 
 static int nk_love_is_hex(char c)
 {
-	return (c >= '0' && c <= '9')
-			|| (c >= 'a' && c <= 'f')
-			|| (c >= 'A' && c <= 'F');
+	return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
 }
 
 static int nk_love_is_color(lua_State *L, int index)
 {
 	if (index < 0)
 		index += lua_gettop(L) + 1;
-	if (lua_isstring(L, index)) {
+	if (lua_isstring(L, index))
+	{
 		size_t len;
 		const char *color_string = lua_tolstring(L, index, &len);
-		if ((len == 7 || len == 9) && color_string[0] == '#') {
+		if ((len == 7 || len == 9) && color_string[0] == '#')
+		{
 			int i;
-			for (i = 1; i < len; ++i) {
+			for (i = 1; i < len; ++i)
+			{
 				if (!nk_love_is_hex(color_string[i]))
 					return 0;
 			}
@@ -266,11 +283,15 @@ static struct nk_color nk_love_checkcolor(lua_State *L, int index)
 {
 	if (index < 0)
 		index += lua_gettop(L) + 1;
-	if (!nk_love_is_color(L, index)) {
-		if (lua_isstring(L, index)){
+	if (!nk_love_is_color(L, index))
+	{
+		if (lua_isstring(L, index))
+		{
 			const char *msg = lua_pushfstring(L, "bad color string '%s'", lua_tostring(L, index));
 			luaL_argerror(L, index, msg);
-		} else {
+		}
+		else
+		{
 			luaL_typerror(L, index, "color string");
 		}
 	}
@@ -278,14 +299,16 @@ static struct nk_color nk_love_checkcolor(lua_State *L, int index)
 	const char *color_string = lua_tolstring(L, index, &len);
 	int r, g, b, a = 255;
 	sscanf(color_string, "#%02x%02x%02x", &r, &g, &b);
-	if (len == 9) {
+	if (len == 9)
+	{
 		sscanf(color_string + 7, "%02x", &a);
 	}
 	struct nk_color color = {r, g, b, a};
 	return color;
 }
 
-static struct nk_colorf nk_love_checkcolorf(lua_State *L, int index) {
+static struct nk_colorf nk_love_checkcolorf(lua_State *L, int index)
+{
 	return nk_color_cf(nk_love_checkcolor(L, index));
 }
 
@@ -296,9 +319,12 @@ static void nk_love_color(int r, int g, int b, int a, char *color_string)
 	b = NK_CLAMP(0, b, 255);
 	a = NK_CLAMP(0, a, 255);
 	const char *format_string;
-	if (a < 255) {
+	if (a < 255)
+	{
 		format_string = "#%02x%02x%02x%02x";
-	} else {
+	}
+	else
+	{
 		format_string = "#%02x%02x%02x";
 	}
 	sprintf(color_string, format_string, r, g, b, a);
@@ -307,17 +333,20 @@ static void nk_love_color(int r, int g, int b, int a, char *color_string)
 static nk_flags nk_love_parse_window_flags(lua_State *L, int flags_begin, int flags_end)
 {
 	int i;
-	if (flags_begin == flags_end && lua_istable(L, flags_begin)) {
+	if (flags_begin == flags_end && lua_istable(L, flags_begin))
+	{
 		size_t flagCount = lua_objlen(L, flags_begin);
 		nk_love_assert(L, lua_checkstack(L, flagCount), "%s: failed to allocate stack space");
-		for (i = 1; i <= flagCount; ++i) {
+		for (i = 1; i <= flagCount; ++i)
+		{
 			lua_rawgeti(L, flags_begin, i);
 		}
 		lua_remove(L, flags_begin);
 		flags_end = flags_begin + flagCount - 1;
 	}
 	nk_flags flags = NK_WINDOW_NO_SCROLLBAR;
-	for (i = flags_begin; i <= flags_end; ++i) {
+	for (i = flags_begin; i <= flags_end; ++i)
+	{
 		const char *flag = luaL_checkstring(L, i);
 		if (!strcmp(flag, "border"))
 			flags |= NK_WINDOW_BORDER;
@@ -337,7 +366,8 @@ static nk_flags nk_love_parse_window_flags(lua_State *L, int flags_begin, int fl
 			flags |= NK_WINDOW_SCROLL_AUTO_HIDE;
 		else if (!strcmp(flag, "background"))
 			flags |= NK_WINDOW_BACKGROUND;
-		else {
+		else
+		{
 			const char *msg = lua_pushfstring(L, "unrecognized window flag '%s'", flag);
 			return luaL_argerror(L, i, msg);
 		}
@@ -350,35 +380,64 @@ static enum nk_symbol_type nk_love_checksymbol(lua_State *L, int index)
 	if (index < 0)
 		index += lua_gettop(L) + 1;
 	const char *s = luaL_checkstring(L, index);
-	if (!strcmp(s, "none")) {
+	if (!strcmp(s, "none"))
+	{
 		return NK_SYMBOL_NONE;
-	} else if (!strcmp(s, "x")) {
+	}
+	else if (!strcmp(s, "x"))
+	{
 		return NK_SYMBOL_X;
-	} else if (!strcmp(s, "underscore")) {
+	}
+	else if (!strcmp(s, "underscore"))
+	{
 		return NK_SYMBOL_UNDERSCORE;
-	} else if (!strcmp(s, "circle solid")) {
+	}
+	else if (!strcmp(s, "circle solid"))
+	{
 		return NK_SYMBOL_CIRCLE_SOLID;
-	} else if (!strcmp(s, "circle outline")) {
+	}
+	else if (!strcmp(s, "circle outline"))
+	{
 		return NK_SYMBOL_CIRCLE_OUTLINE;
-	} else if (!strcmp(s, "rect solid")) {
+	}
+	else if (!strcmp(s, "rect solid"))
+	{
 		return NK_SYMBOL_RECT_SOLID;
-	} else if (!strcmp(s, "rect outline")) {
+	}
+	else if (!strcmp(s, "rect outline"))
+	{
 		return NK_SYMBOL_RECT_OUTLINE;
-	} else if (!strcmp(s, "triangle up")) {
+	}
+	else if (!strcmp(s, "triangle up"))
+	{
 		return NK_SYMBOL_TRIANGLE_UP;
-	} else if (!strcmp(s, "triangle down")) {
+	}
+	else if (!strcmp(s, "triangle down"))
+	{
 		return NK_SYMBOL_TRIANGLE_DOWN;
-	} else if (!strcmp(s, "triangle left")) {
+	}
+	else if (!strcmp(s, "triangle left"))
+	{
 		return NK_SYMBOL_TRIANGLE_LEFT;
-	} else if (!strcmp(s, "triangle right")) {
+	}
+	else if (!strcmp(s, "triangle right"))
+	{
 		return NK_SYMBOL_TRIANGLE_RIGHT;
-	} else if (!strcmp(s, "plus")) {
+	}
+	else if (!strcmp(s, "plus"))
+	{
 		return NK_SYMBOL_PLUS;
-	} else if (!strcmp(s, "minus")) {
+	}
+	else if (!strcmp(s, "minus"))
+	{
 		return NK_SYMBOL_MINUS;
-	} else if (!strcmp(s, "max")) {
+	}
+	else if (!strcmp(s, "max"))
+	{
 		return NK_SYMBOL_MAX;
-	} else {
+	}
+	else
+	{
 		const char *msg = lua_pushfstring(L, "unrecognized symbol type '%s'", s);
 		return luaL_argerror(L, index, msg);
 	}
@@ -389,25 +448,44 @@ static nk_flags nk_love_checkalign(lua_State *L, int index)
 	if (index < 0)
 		index += lua_gettop(L) + 1;
 	const char *s = luaL_checkstring(L, index);
-	if (!strcmp(s, "left")) {
+	if (!strcmp(s, "left"))
+	{
 		return NK_TEXT_LEFT;
-	} else if (!strcmp(s, "centered")) {
+	}
+	else if (!strcmp(s, "centered"))
+	{
 		return NK_TEXT_CENTERED;
-	} else if (!strcmp(s, "right")) {
+	}
+	else if (!strcmp(s, "right"))
+	{
 		return NK_TEXT_RIGHT;
-	} else if (!strcmp(s, "top left")) {
+	}
+	else if (!strcmp(s, "top left"))
+	{
 		return NK_TEXT_ALIGN_TOP | NK_TEXT_ALIGN_LEFT;
-	} else if (!strcmp(s, "top centered")) {
+	}
+	else if (!strcmp(s, "top centered"))
+	{
 		return NK_TEXT_ALIGN_TOP | NK_TEXT_ALIGN_CENTERED;
-	} else if (!strcmp(s, "top right")) {
+	}
+	else if (!strcmp(s, "top right"))
+	{
 		return NK_TEXT_ALIGN_TOP | NK_TEXT_ALIGN_RIGHT;
-	} else if (!strcmp(s, "bottom left")) {
+	}
+	else if (!strcmp(s, "bottom left"))
+	{
 		return NK_TEXT_ALIGN_BOTTOM | NK_TEXT_ALIGN_LEFT;
-	} else if (!strcmp(s, "bottom centered")) {
+	}
+	else if (!strcmp(s, "bottom centered"))
+	{
 		return NK_TEXT_ALIGN_BOTTOM | NK_TEXT_ALIGN_CENTERED;
-	} else if (!strcmp(s, "bottom right")) {
+	}
+	else if (!strcmp(s, "bottom right"))
+	{
 		return NK_TEXT_ALIGN_BOTTOM | NK_TEXT_ALIGN_RIGHT;
-	} else {
+	}
+	else
+	{
 		const char *msg = lua_pushfstring(L, "unrecognized alignment '%s'", s);
 		return luaL_argerror(L, index, msg);
 	}
@@ -418,13 +496,20 @@ static enum nk_buttons nk_love_checkbutton(lua_State *L, int index)
 	if (index < 0)
 		index += lua_gettop(L) + 1;
 	const char *s = luaL_checkstring(L, index);
-	if (!strcmp(s, "left")) {
+	if (!strcmp(s, "left"))
+	{
 		return NK_BUTTON_LEFT;
-	} else if (!strcmp(s, "right")) {
+	}
+	else if (!strcmp(s, "right"))
+	{
 		return NK_BUTTON_RIGHT;
-	} else if (!strcmp(s, "middle")) {
+	}
+	else if (!strcmp(s, "middle"))
+	{
 		return NK_BUTTON_MIDDLE;
-	} else {
+	}
+	else
+	{
 		const char *msg = lua_pushfstring(L, "unrecognized mouse button '%s'", s);
 		return luaL_argerror(L, index, msg);
 	}
@@ -435,11 +520,16 @@ static enum nk_layout_format nk_love_checkformat(lua_State *L, int index)
 	if (index < 0)
 		index += lua_gettop(L) + 1;
 	const char *type = luaL_checkstring(L, index);
-	if (!strcmp(type, "dynamic")) {
+	if (!strcmp(type, "dynamic"))
+	{
 		return NK_DYNAMIC;
-	} else if (!strcmp(type, "static")) {
+	}
+	else if (!strcmp(type, "static"))
+	{
 		return NK_STATIC;
-	} else {
+	}
+	else
+	{
 		const char *msg = lua_pushfstring(L, "unrecognized layout format '%s'", type);
 		return luaL_argerror(L, index, msg);
 	}
@@ -450,11 +540,16 @@ static enum nk_tree_type nk_love_checktree(lua_State *L, int index)
 	if (index < 0)
 		index += lua_gettop(L) + 1;
 	const char *type_string = luaL_checkstring(L, index);
-	if (!strcmp(type_string, "node")) {
+	if (!strcmp(type_string, "node"))
+	{
 		return NK_TREE_NODE;
-	} else if (!strcmp(type_string, "tab")) {
+	}
+	else if (!strcmp(type_string, "tab"))
+	{
 		return NK_TREE_TAB;
-	} else {
+	}
+	else
+	{
 		const char *msg = lua_pushfstring(L, "unrecognized tree type '%s'", type_string);
 		return luaL_argerror(L, index, msg);
 	}
@@ -465,11 +560,16 @@ static enum nk_collapse_states nk_love_checkstate(lua_State *L, int index)
 	if (index < 0)
 		index += lua_gettop(L) + 1;
 	const char *state_string = luaL_checkstring(L, index);
-	if (!strcmp(state_string, "collapsed")) {
+	if (!strcmp(state_string, "collapsed"))
+	{
 		return NK_MINIMIZED;
-	} else if (!strcmp(state_string, "expanded")) {
+	}
+	else if (!strcmp(state_string, "expanded"))
+	{
 		return NK_MAXIMIZED;
-	} else {
+	}
+	else
+	{
 		const char *msg = lua_pushfstring(L, "unrecognized tree state '%s'", state_string);
 		return luaL_argerror(L, index, msg);
 	}
@@ -484,7 +584,8 @@ static enum nk_button_behavior nk_love_checkbehavior(lua_State *L, int index)
 		return NK_BUTTON_DEFAULT;
 	else if (!strcmp(behavior_string, "repeater"))
 		return NK_BUTTON_REPEATER;
-	else {
+	else
+	{
 		const char *msg = lua_pushfstring(L, "unrecognized button behavior '%s'", behavior_string);
 		return luaL_argerror(L, index, msg);
 	}
@@ -495,11 +596,16 @@ static enum nk_color_format nk_love_checkcolorformat(lua_State *L, int index)
 	if (index < 0)
 		index += lua_gettop(L) + 1;
 	const char *format_string = luaL_checkstring(L, index);
-	if (!strcmp(format_string, "RGB")) {
+	if (!strcmp(format_string, "RGB"))
+	{
 		return NK_RGB;
-	} else if (!strcmp(format_string, "RGBA")) {
-	 	return NK_RGBA;
-	} else {
+	}
+	else if (!strcmp(format_string, "RGBA"))
+	{
+		return NK_RGBA;
+	}
+	else
+	{
 		const char *msg = lua_pushfstring(L, "unrecognized color format '%s'", format_string);
 		return luaL_argerror(L, index, msg);
 	}
@@ -510,16 +616,23 @@ static nk_flags nk_love_checkedittype(lua_State *L, int index)
 	if (index < 0)
 		index += lua_gettop(L) + 1;
 	const char *type_string = luaL_checkstring(L, index);
-	if (!strcmp(type_string, "simple")) {
+	if (!strcmp(type_string, "simple"))
+	{
 		return NK_EDIT_SIMPLE;
-	} else if (!strcmp(type_string, "field")) {
+	}
+	else if (!strcmp(type_string, "field"))
+	{
 		return NK_EDIT_FIELD;
-	} else if (!strcmp(type_string, "box")) {
+	}
+	else if (!strcmp(type_string, "box"))
+	{
 		return NK_EDIT_BOX;
-	} else {
-	 	const char *msg = lua_pushfstring(L, "unrecognized edit type '%s'", type_string);
-	 	return luaL_argerror(L, index, msg);
- }
+	}
+	else
+	{
+		const char *msg = lua_pushfstring(L, "unrecognized edit type '%s'", type_string);
+		return luaL_argerror(L, index, msg);
+	}
 }
 
 static enum nk_popup_type nk_love_checkpopup(lua_State *L, int index)
@@ -527,30 +640,44 @@ static enum nk_popup_type nk_love_checkpopup(lua_State *L, int index)
 	if (index < 0)
 		index += lua_gettop(L) + 1;
 	const char *popup_type = luaL_checkstring(L, index);
-	if (!strcmp(popup_type, "dynamic")) {
+	if (!strcmp(popup_type, "dynamic"))
+	{
 		return NK_POPUP_DYNAMIC;
-	} else if (!strcmp(popup_type, "static")) {
+	}
+	else if (!strcmp(popup_type, "static"))
+	{
 		return NK_POPUP_STATIC;
-	} else {
+	}
+	else
+	{
 		const char *msg = lua_pushfstring(L, "unrecognized popup type '%s'", popup_type);
-	 	return luaL_argerror(L, index, msg);
+		return luaL_argerror(L, index, msg);
 	}
 }
 
-enum nk_love_draw_mode {NK_LOVE_FILL, NK_LOVE_LINE};
+enum nk_love_draw_mode
+{
+	NK_LOVE_FILL,
+	NK_LOVE_LINE
+};
 
 static enum nk_love_draw_mode nk_love_checkdraw(lua_State *L, int index)
 {
 	if (index < 0)
 		index += lua_gettop(L) + 1;
 	const char *mode = luaL_checkstring(L, index);
-	if (!strcmp(mode, "fill")) {
+	if (!strcmp(mode, "fill"))
+	{
 		return NK_LOVE_FILL;
-	} else if (!strcmp(mode, "line")) {
+	}
+	else if (!strcmp(mode, "line"))
+	{
 		return NK_LOVE_LINE;
-	} else {
+	}
+	else
+	{
 		const char *msg = lua_pushfstring(L, "unrecognized draw mode '%s'", mode);
-	 	return luaL_argerror(L, index, msg);
+		return luaL_argerror(L, index, msg);
 	}
 }
 
@@ -567,8 +694,8 @@ static void nk_love_transform(float *T, int *x, int *y)
 	float rx, ry;
 	rx = *x * T[0] + *y * T[3] + T[6];
 	ry = *x * T[1] + *y * T[4] + T[7];
-	*x = (int) rx;
-	*y = (int) ry;
+	*x = (int)rx;
+	*y = (int)ry;
 }
 
 /*
@@ -584,7 +711,8 @@ static void nk_love_configureGraphics(lua_State *L, int line_thickness, struct n
 	lua_getglobal(L, "love");
 	lua_getfield(L, -1, "graphics");
 	lua_remove(L, -2);
-	if (line_thickness >= 0) {
+	if (line_thickness >= 0)
+	{
 		lua_getfield(L, -1, "setLineWidth");
 		lua_pushnumber(L, line_thickness);
 		lua_call(L, 1, 0);
@@ -607,15 +735,15 @@ static void nk_love_getGraphics(lua_State *L, float *line_thickness, struct nk_c
 	lua_pop(L, 1);
 	lua_getfield(L, -1, "getColor");
 	lua_call(L, 0, 4);
-	color->r = (int) (lua_tonumber(L, -4) * 255.0);
-	color->g = (int) (lua_tonumber(L, -3) * 255.0);
-	color->b = (int) (lua_tonumber(L, -2) * 255.0);
-	color->a = (int) (lua_tonumber(L, -1) * 255.0);
+	color->r = (int)(lua_tonumber(L, -4) * 255.0);
+	color->g = (int)(lua_tonumber(L, -3) * 255.0);
+	color->b = (int)(lua_tonumber(L, -2) * 255.0);
+	color->a = (int)(lua_tonumber(L, -1) * 255.0);
 	lua_pop(L, 6);
 }
 
 static void nk_love_scissor(lua_State *L, int x, int y, int w, int h,
-		int nested, int px, int py, int pw, int ph)
+							int nested, int px, int py, int pw, int ph)
 {
 	lua_getglobal(L, "love");
 	lua_getfield(L, -1, "graphics");
@@ -629,7 +757,8 @@ static void nk_love_scissor(lua_State *L, int x, int y, int w, int h,
 	int top = NK_MIN(NK_MIN(y1, y2), NK_MIN(y3, y4));
 	int right = NK_MAX(NK_MAX(x1, x2), NK_MAX(x3, x4));
 	int bottom = NK_MAX(NK_MAX(y1, y2), NK_MAX(y3, y4));
-	if (nested) {
+	if (nested)
+	{
 		left = NK_MAX(left, px);
 		top = NK_MAX(top, py);
 		right = NK_MIN(right, px + pw);
@@ -644,7 +773,7 @@ static void nk_love_scissor(lua_State *L, int x, int y, int w, int h,
 }
 
 static void nk_love_draw_line(lua_State *L, int x0, int y0, int x1, int y1,
-	int line_thickness, struct nk_color col)
+							  int line_thickness, struct nk_color col)
 {
 	nk_love_configureGraphics(L, line_thickness, col);
 	lua_getfield(L, -1, "line");
@@ -657,8 +786,8 @@ static void nk_love_draw_line(lua_State *L, int x0, int y0, int x1, int y1,
 }
 
 static void nk_love_draw_rect(lua_State *L, int x, int y, unsigned int w,
-	unsigned int h, unsigned int r, int line_thickness,
-	struct nk_color col)
+							  unsigned int h, unsigned int r, int line_thickness,
+							  struct nk_color col)
 {
 	nk_love_configureGraphics(L, line_thickness, col);
 	lua_getfield(L, -1, "rectangle");
@@ -677,7 +806,7 @@ static void nk_love_draw_rect(lua_State *L, int x, int y, unsigned int w,
 }
 
 static void nk_love_draw_triangle(lua_State *L, int x0, int y0, int x1, int y1,
-	int x2, int y2,	int line_thickness, struct nk_color col)
+								  int x2, int y2, int line_thickness, struct nk_color col)
 {
 	nk_love_configureGraphics(L, line_thickness, col);
 	lua_getfield(L, -1, "polygon");
@@ -696,7 +825,7 @@ static void nk_love_draw_triangle(lua_State *L, int x0, int y0, int x1, int y1,
 }
 
 static void nk_love_draw_polygon(lua_State *L, const struct nk_vec2i *pnts, int count,
-	int line_thickness, struct nk_color col)
+								 int line_thickness, struct nk_color col)
 {
 	nk_love_configureGraphics(L, line_thickness, col);
 	lua_getfield(L, -1, "polygon");
@@ -705,7 +834,8 @@ static void nk_love_draw_polygon(lua_State *L, const struct nk_vec2i *pnts, int 
 	else
 		lua_pushstring(L, "fill");
 	int i;
-	for (i = 0; (i < count) && (i < NK_LOVE_MAX_POINTS); ++i) {
+	for (i = 0; (i < count) && (i < NK_LOVE_MAX_POINTS); ++i)
+	{
 		lua_pushnumber(L, pnts[i].x + 0.5);
 		lua_pushnumber(L, pnts[i].y + 0.5);
 	}
@@ -714,12 +844,13 @@ static void nk_love_draw_polygon(lua_State *L, const struct nk_vec2i *pnts, int 
 }
 
 static void nk_love_draw_polyline(lua_State *L, const struct nk_vec2i *pnts,
-	int count, int line_thickness, struct nk_color col)
+								  int count, int line_thickness, struct nk_color col)
 {
 	nk_love_configureGraphics(L, line_thickness, col);
 	lua_getfield(L, -1, "line");
 	int i;
-	for (i = 0; (i < count) && (i < NK_LOVE_MAX_POINTS); ++i) {
+	for (i = 0; (i < count) && (i < NK_LOVE_MAX_POINTS); ++i)
+	{
 		lua_pushnumber(L, pnts[i].x + 0.5);
 		lua_pushnumber(L, pnts[i].y + 0.5);
 	}
@@ -728,7 +859,7 @@ static void nk_love_draw_polyline(lua_State *L, const struct nk_vec2i *pnts,
 }
 
 static void nk_love_draw_circle(lua_State *L, int x, int y, unsigned int w,
-	unsigned int h, int line_thickness, struct nk_color col)
+								unsigned int h, int line_thickness, struct nk_color col)
 {
 	nk_love_configureGraphics(L, line_thickness, col);
 	lua_getfield(L, -1, "ellipse");
@@ -745,8 +876,8 @@ static void nk_love_draw_circle(lua_State *L, int x, int y, unsigned int w,
 }
 
 static void nk_love_draw_curve(lua_State *L, struct nk_vec2i p1, struct nk_vec2i p2,
-	struct nk_vec2i p3, struct nk_vec2i p4, unsigned int num_segments,
-	int line_thickness, struct nk_color col)
+							   struct nk_vec2i p3, struct nk_vec2i p4, unsigned int num_segments,
+							   int line_thickness, struct nk_color col)
 {
 	unsigned int i_step;
 	float t_step;
@@ -754,16 +885,17 @@ static void nk_love_draw_curve(lua_State *L, struct nk_vec2i p1, struct nk_vec2i
 
 	if (num_segments < 1)
 		num_segments = 1;
-	t_step = 1.0f/(float)num_segments;
+	t_step = 1.0f / (float)num_segments;
 	nk_love_configureGraphics(L, line_thickness, col);
 	lua_getfield(L, -1, "line");
-	for (i_step = 1; i_step <= num_segments; ++i_step) {
+	for (i_step = 1; i_step <= num_segments; ++i_step)
+	{
 		float t = t_step * (float)i_step;
 		float u = 1.0f - t;
-		float w1 = u*u*u;
-		float w2 = 3*u*u*t;
-		float w3 = 3*u*t*t;
-		float w4 = t * t *t;
+		float w1 = u * u * u;
+		float w2 = 3 * u * u * t;
+		float w3 = 3 * u * t * t;
+		float w4 = t * t * t;
 		float x = w1 * p1.x + w2 * p2.x + w3 * p3.x + w4 * p4.x;
 		float y = w1 * p1.y + w2 * p2.y + w3 * p3.y + w4 * p4.y;
 		lua_pushnumber(L, x);
@@ -774,8 +906,8 @@ static void nk_love_draw_curve(lua_State *L, struct nk_vec2i p1, struct nk_vec2i
 }
 
 static void nk_love_draw_text(lua_State *L, int fontref, struct nk_color cbg,
-	struct nk_color cfg, int x, int y, unsigned int w, unsigned int h,
-	float height, int len, const char *text)
+							  struct nk_color cfg, int x, int y, unsigned int w, unsigned int h,
+							  float height, int len, const char *text)
 {
 	lua_getglobal(L, "love");
 	lua_getfield(L, -1, "graphics");
@@ -818,7 +950,7 @@ static void nk_love_draw_text(lua_State *L, int fontref, struct nk_color cbg,
 }
 
 static void interpolate_color(struct nk_color c1, struct nk_color c2,
-	struct nk_color *result, float fraction)
+							  struct nk_color *result, float fraction)
 {
 	float r = c1.r + (c2.r - c1.r) * fraction;
 	float g = c1.g + (c2.g - c1.g) * fraction;
@@ -832,8 +964,8 @@ static void interpolate_color(struct nk_color c1, struct nk_color c2,
 }
 
 static void nk_love_draw_rect_multi_color(lua_State *L, int x, int y, unsigned int w,
-	unsigned int h, struct nk_color left, struct nk_color top,
-	struct nk_color right, struct nk_color bottom)
+										  unsigned int h, struct nk_color left, struct nk_color top,
+										  struct nk_color right, struct nk_color bottom)
 {
 	lua_getglobal(L, "love");
 	lua_getfield(L, -1, "graphics");
@@ -852,14 +984,16 @@ static void nk_love_draw_rect_multi_color(lua_State *L, int x, int y, unsigned i
 
 	struct nk_color X1, X2, Y;
 	float fraction_x, fraction_y;
-	int i,j;
+	int i, j;
 
 	lua_getfield(L, -1, "points");
 	lua_createtable(L, w * h, 0);
 
-	for (j = 0; j < h; j++) {
+	for (j = 0; j < h; j++)
+	{
 		fraction_y = ((float)j) / h;
-		for (i = 0; i < w; i++) {
+		for (i = 0; i < w; i++)
+		{
 			fraction_x = ((float)i) / w;
 			interpolate_color(left, top, &X1, fraction_x);
 			interpolate_color(right, bottom, &X2, fraction_x);
@@ -888,7 +1022,7 @@ static void nk_love_draw_rect_multi_color(lua_State *L, int x, int y, unsigned i
 }
 
 static void nk_love_draw_image(lua_State *L, int x, int y, unsigned int w, unsigned int h,
-	struct nk_image image, struct nk_color color)
+							   struct nk_image image, struct nk_color color)
 {
 	nk_love_configureGraphics(L, -1, color);
 	lua_getfield(L, -1, "draw");
@@ -907,14 +1041,14 @@ static void nk_love_draw_image(lua_State *L, int x, int y, unsigned int w, unsig
 	double viewportWidth = lua_tonumber(L, -2);
 	double viewportHeight = lua_tonumber(L, -1);
 	lua_pop(L, 4);
-	lua_pushnumber(L, (double) w / viewportWidth);
-	lua_pushnumber(L, (double) h / viewportHeight);
+	lua_pushnumber(L, (double)w / viewportWidth);
+	lua_pushnumber(L, (double)h / viewportHeight);
 	lua_call(L, 7, 0);
 	lua_pop(L, 1);
 }
 
 static void nk_love_draw_arc(lua_State *L, int cx, int cy, unsigned int r,
-	int line_thickness, float a1, float a2, struct nk_color color)
+							 int line_thickness, float a1, float a2, struct nk_color color)
 {
 	nk_love_configureGraphics(L, line_thickness, color);
 	lua_getfield(L, -1, "arc");
@@ -947,7 +1081,8 @@ static void nk_love_clipboard_paste(nk_handle usr, struct nk_text_edit *edit)
 	lua_getfield(L, -1, "getClipboardText");
 	lua_call(L, 0, 1);
 	const char *text = lua_tostring(L, -1);
-	if (text) nk_textedit_paste(edit, text, nk_strlen(text));
+	if (text)
+		nk_textedit_paste(edit, text, nk_strlen(text));
 	lua_pop(L, 3);
 }
 
@@ -955,9 +1090,11 @@ static void nk_love_clipboard_copy(nk_handle usr, const char *text, int len)
 {
 	lua_State *L = usr.ptr;
 	char *str = 0;
-	if (!len) return;
-	str = (char*)malloc((size_t)len+1);
-	if (!str) return;
+	if (!len)
+		return;
+	str = (char *)malloc((size_t)len + 1);
+	if (!str)
+		return;
 	memcpy(str, text, (size_t)len);
 	str[len] = '\0';
 	lua_getglobal(L, "love");
@@ -973,14 +1110,18 @@ static int nk_love_is_active(struct nk_context *ctx)
 {
 	struct nk_window *iter;
 	iter = ctx->begin;
-	while (iter) {
+	while (iter)
+	{
 		/* check if window is being hovered */
-		if (iter->flags & NK_WINDOW_MINIMIZED) {
+		if (iter->flags & NK_WINDOW_MINIMIZED)
+		{
 			struct nk_rect header = iter->bounds;
 			header.h = ctx->style.font->height + 2 * ctx->style.window.header.padding.y;
 			if (nk_input_is_mouse_hovering_rect(&ctx->input, header))
 				return 1;
-		} else if (nk_input_is_mouse_hovering_rect(&ctx->input, iter->bounds)) {
+		}
+		else if (nk_input_is_mouse_hovering_rect(&ctx->input, iter->bounds))
+		{
 			return 1;
 		}
 		/* check if window popup is being hovered */
@@ -994,7 +1135,7 @@ static int nk_love_is_active(struct nk_context *ctx)
 }
 
 static int nk_love_keyevent(lua_State *L, struct nk_context *ctx, const char *key,
-	const char *scancode, int isrepeat, int down)
+							const char *scancode, int isrepeat, int down)
 {
 	lua_getglobal(L, "love");
 	lua_getfield(L, -1, "keyboard");
@@ -1014,15 +1155,23 @@ static int nk_love_keyevent(lua_State *L, struct nk_context *ctx, const char *ke
 		nk_input_key(ctx, NK_KEY_TAB, down);
 	else if (!strcmp(key, "backspace"))
 		nk_input_key(ctx, NK_KEY_BACKSPACE, down);
-	else if (!strcmp(key, "home")) {
+	else if (!strcmp(key, "home"))
+	{
 		nk_input_key(ctx, NK_KEY_TEXT_LINE_START, down);
-	} else if (!strcmp(key, "end")) {
+	}
+	else if (!strcmp(key, "end"))
+	{
 		nk_input_key(ctx, NK_KEY_TEXT_LINE_END, down);
-	} else if (!strcmp(key, "pagedown")) {
+	}
+	else if (!strcmp(key, "pagedown"))
+	{
 		nk_input_key(ctx, NK_KEY_SCROLL_DOWN, down);
-	} else if (!strcmp(key, "pageup")) {
+	}
+	else if (!strcmp(key, "pageup"))
+	{
 		nk_input_key(ctx, NK_KEY_SCROLL_UP, down);
-	} else if (!strcmp(key, "z"))
+	}
+	else if (!strcmp(key, "z"))
 		nk_input_key(ctx, NK_KEY_TEXT_UNDO, down && lctrl);
 	else if (!strcmp(key, "r"))
 		nk_input_key(ctx, NK_KEY_TEXT_REDO, down && lctrl);
@@ -1036,17 +1185,21 @@ static int nk_love_keyevent(lua_State *L, struct nk_context *ctx, const char *ke
 		nk_input_key(ctx, NK_KEY_TEXT_LINE_START, down && lctrl);
 	else if (!strcmp(key, "e"))
 		nk_input_key(ctx, NK_KEY_TEXT_LINE_END, down && lctrl);
-	else if (!strcmp(key, "left")) {
+	else if (!strcmp(key, "left"))
+	{
 		if (lctrl)
 			nk_input_key(ctx, NK_KEY_TEXT_WORD_LEFT, down);
 		else
 			nk_input_key(ctx, NK_KEY_LEFT, down);
-	} else if (!strcmp(key, "right")) {
+	}
+	else if (!strcmp(key, "right"))
+	{
 		if (lctrl)
 			nk_input_key(ctx, NK_KEY_TEXT_WORD_RIGHT, down);
 		else
 			nk_input_key(ctx, NK_KEY_RIGHT, down);
-	} else if (!strcmp(key, "up"))
+	}
+	else if (!strcmp(key, "up"))
 		nk_input_key(ctx, NK_KEY_UP, down);
 	else if (!strcmp(key, "down"))
 		nk_input_key(ctx, NK_KEY_DOWN, down);
@@ -1056,7 +1209,7 @@ static int nk_love_keyevent(lua_State *L, struct nk_context *ctx, const char *ke
 }
 
 static int nk_love_clickevent(struct nk_love_context *ctx, int x, int y,
-	int button, int istouch, int presses, int down)
+							  int button, int istouch, int presses, int down)
 {
 	nk_love_transform(ctx->Ti, &x, &y);
 	struct nk_context *nkctx = &ctx->nkctx;
@@ -1072,7 +1225,7 @@ static int nk_love_clickevent(struct nk_love_context *ctx, int x, int y,
 }
 
 static int nk_love_mousemoved_event(struct nk_love_context *ctx, int x, int y,
-	int dx, int dy, int istouch)
+									int dx, int dy, int istouch)
 {
 	nk_love_transform(ctx->Ti, &x, &y);
 	struct nk_context *nkctx = &ctx->nkctx;
@@ -1262,7 +1415,8 @@ static int nk_love_draw(lua_State *L)
 	int px = 0, py = 0, pw = 0, ph = 0;
 	lua_getfield(L, -1, "getScissor");
 	lua_call(L, 0, 4);
-	if (lua_isnumber(L, -4)) {
+	if (lua_isnumber(L, -4))
+	{
 		nest_scissor = 1;
 		px = lua_tonumber(L, -4);
 		py = lua_tonumber(L, -3);
@@ -1274,7 +1428,8 @@ static int nk_love_draw(lua_State *L)
 	nk_love_pushregistry(L, "transform");
 	size_t transform_count = lua_objlen(L, -1);
 	size_t i, j;
-	for (i = 1; i <= transform_count; ++i) {
+	for (i = 1; i <= transform_count; ++i)
+	{
 		lua_rawgeti(L, -1, i);
 		lua_rawgeti(L, -1, 1);
 		lua_gettable(L, -4);
@@ -1289,85 +1444,122 @@ static int nk_love_draw(lua_State *L)
 	const struct nk_command *cmd;
 	nk_foreach(cmd, &context->nkctx)
 	{
-		switch (cmd->type) {
-		case NK_COMMAND_NOP: break;
-		case NK_COMMAND_SCISSOR: {
-			const struct nk_command_scissor *s =(const struct nk_command_scissor*)cmd;
+		switch (cmd->type)
+		{
+		case NK_COMMAND_NOP:
+			break;
+		case NK_COMMAND_SCISSOR:
+		{
+			const struct nk_command_scissor *s = (const struct nk_command_scissor *)cmd;
 			nk_love_scissor(L, s->x, s->y, s->w, s->h, nest_scissor, px, py, pw, ph);
-		} break;
-		case NK_COMMAND_LINE: {
+		}
+		break;
+		case NK_COMMAND_LINE:
+		{
 			const struct nk_command_line *l = (const struct nk_command_line *)cmd;
 			nk_love_draw_line(L, l->begin.x, l->begin.y, l->end.x,
-				l->end.y, l->line_thickness, l->color);
-		} break;
-		case NK_COMMAND_RECT: {
+							  l->end.y, l->line_thickness, l->color);
+		}
+		break;
+		case NK_COMMAND_RECT:
+		{
 			const struct nk_command_rect *r = (const struct nk_command_rect *)cmd;
 			nk_love_draw_rect(L, r->x, r->y, r->w, r->h,
-				(unsigned int)r->rounding, r->line_thickness, r->color);
-		} break;
-		case NK_COMMAND_RECT_FILLED: {
+							  (unsigned int)r->rounding, r->line_thickness, r->color);
+		}
+		break;
+		case NK_COMMAND_RECT_FILLED:
+		{
 			const struct nk_command_rect_filled *r = (const struct nk_command_rect_filled *)cmd;
 			nk_love_draw_rect(L, r->x, r->y, r->w, r->h, (unsigned int)r->rounding, -1, r->color);
-		} break;
-		case NK_COMMAND_CIRCLE: {
+		}
+		break;
+		case NK_COMMAND_CIRCLE:
+		{
 			const struct nk_command_circle *c = (const struct nk_command_circle *)cmd;
 			nk_love_draw_circle(L, c->x, c->y, c->w, c->h, c->line_thickness, c->color);
-		} break;
-		case NK_COMMAND_CIRCLE_FILLED: {
+		}
+		break;
+		case NK_COMMAND_CIRCLE_FILLED:
+		{
 			const struct nk_command_circle_filled *c = (const struct nk_command_circle_filled *)cmd;
 			nk_love_draw_circle(L, c->x, c->y, c->w, c->h, -1, c->color);
-		} break;
-		case NK_COMMAND_TRIANGLE: {
-			const struct nk_command_triangle *t = (const struct nk_command_triangle*)cmd;
+		}
+		break;
+		case NK_COMMAND_TRIANGLE:
+		{
+			const struct nk_command_triangle *t = (const struct nk_command_triangle *)cmd;
 			nk_love_draw_triangle(L, t->a.x, t->a.y, t->b.x, t->b.y,
-				t->c.x, t->c.y, t->line_thickness, t->color);
-		} break;
-		case NK_COMMAND_TRIANGLE_FILLED: {
+								  t->c.x, t->c.y, t->line_thickness, t->color);
+		}
+		break;
+		case NK_COMMAND_TRIANGLE_FILLED:
+		{
 			const struct nk_command_triangle_filled *t = (const struct nk_command_triangle_filled *)cmd;
 			nk_love_draw_triangle(L, t->a.x, t->a.y, t->b.x, t->b.y, t->c.x, t->c.y, -1, t->color);
-		} break;
-		case NK_COMMAND_POLYGON: {
-			const struct nk_command_polygon *p =(const struct nk_command_polygon*)cmd;
+		}
+		break;
+		case NK_COMMAND_POLYGON:
+		{
+			const struct nk_command_polygon *p = (const struct nk_command_polygon *)cmd;
 			nk_love_draw_polygon(L, p->points, p->point_count, p->line_thickness, p->color);
-		} break;
-		case NK_COMMAND_POLYGON_FILLED: {
-			const struct nk_command_polygon_filled *p = (const struct nk_command_polygon_filled*)cmd;
+		}
+		break;
+		case NK_COMMAND_POLYGON_FILLED:
+		{
+			const struct nk_command_polygon_filled *p = (const struct nk_command_polygon_filled *)cmd;
 			nk_love_draw_polygon(L, p->points, p->point_count, -1, p->color);
-		} break;
-		case NK_COMMAND_POLYLINE: {
+		}
+		break;
+		case NK_COMMAND_POLYLINE:
+		{
 			const struct nk_command_polyline *p = (const struct nk_command_polyline *)cmd;
 			nk_love_draw_polyline(L, p->points, p->point_count, p->line_thickness, p->color);
-		} break;
-		case NK_COMMAND_TEXT: {
-			const struct nk_command_text *t = (const struct nk_command_text*)cmd;
+		}
+		break;
+		case NK_COMMAND_TEXT:
+		{
+			const struct nk_command_text *t = (const struct nk_command_text *)cmd;
 			struct nk_love_handle *love_handle = t->font->userdata.ptr;
 			nk_love_draw_text(love_handle->L, love_handle->ref, t->background,
-				t->foreground, t->x, t->y, t->w, t->h,
-				t->height, t->length, (const char*)t->string);
-		} break;
-		case NK_COMMAND_CURVE: {
+							  t->foreground, t->x, t->y, t->w, t->h,
+							  t->height, t->length, (const char *)t->string);
+		}
+		break;
+		case NK_COMMAND_CURVE:
+		{
 			const struct nk_command_curve *q = (const struct nk_command_curve *)cmd;
 			nk_love_draw_curve(L, q->begin, q->ctrl[0], q->ctrl[1],
-				q->end, 22, q->line_thickness, q->color);
-		} break;
-		case NK_COMMAND_RECT_MULTI_COLOR: {
+							   q->end, 22, q->line_thickness, q->color);
+		}
+		break;
+		case NK_COMMAND_RECT_MULTI_COLOR:
+		{
 			const struct nk_command_rect_multi_color *r = (const struct nk_command_rect_multi_color *)cmd;
 			nk_love_draw_rect_multi_color(L, r->x, r->y, r->w, r->h, r->left, r->top, r->bottom, r->right);
-		} break;
-		case NK_COMMAND_IMAGE: {
+		}
+		break;
+		case NK_COMMAND_IMAGE:
+		{
 			const struct nk_command_image *i = (const struct nk_command_image *)cmd;
 			nk_love_draw_image(L, i->x, i->y, i->w, i->h, i->img, i->col);
-		} break;
-		case NK_COMMAND_ARC: {
+		}
+		break;
+		case NK_COMMAND_ARC:
+		{
 			const struct nk_command_arc *a = (const struct nk_command_arc *)cmd;
 			nk_love_draw_arc(L, a->cx, a->cy, a->r, a->line_thickness,
-				a->a[0], a->a[1], a->color);
-		} break;
-		case NK_COMMAND_ARC_FILLED: {
+							 a->a[0], a->a[1], a->color);
+		}
+		break;
+		case NK_COMMAND_ARC_FILLED:
+		{
 			const struct nk_command_arc_filled *a = (const struct nk_command_arc_filled *)cmd;
 			nk_love_draw_arc(L, a->cx, a->cy, a->r, -1, a->a[0], a->a[1], a->color);
-		} break;
-		default: break;
+		}
+		break;
+		default:
+			break;
 		}
 	}
 
@@ -1381,7 +1573,8 @@ static int nk_love_draw(lua_State *L)
 
 static void nk_love_preserve(lua_State *L, struct nk_style_item *item)
 {
-	if (item->type == NK_STYLE_ITEM_IMAGE) {
+	if (item->type == NK_STYLE_ITEM_IMAGE)
+	{
 		lua_rawgeti(L, -1, item->data.image.handle.id);
 		nk_love_checkImage(L, -1, &item->data.image);
 		lua_pop(L, 1);
@@ -1538,7 +1731,8 @@ static int nk_love_frame_begin(lua_State *L)
 	lua_pop(L, 1);
 	context->nkctx.style.font = &context->fonts[context->font_count++];
 	int i;
-	for (i = 0; i < context->nkctx.stacks.fonts.head; ++i) {
+	for (i = 0; i < context->nkctx.stacks.fonts.head; ++i)
+	{
 		struct nk_config_stack_user_font_element *element = &context->nkctx.stacks.fonts.elements[i];
 		love_handle = element->old_value->userdata.ptr;
 		lua_rawgeti(L, -1, love_handle->ref);
@@ -1780,11 +1974,14 @@ static int nk_love_window_begin(lua_State *L)
 	nk_love_assert_context(L, 1);
 	const char *name, *title;
 	int bounds_begin;
-	if (lua_isnumber(L, 3)) {
+	if (lua_isnumber(L, 3))
+	{
 		nk_love_assert_argc(L, lua_gettop(L) >= 6);
 		name = title = luaL_checkstring(L, 2);
 		bounds_begin = 3;
-	} else {
+	}
+	else
+	{
 		nk_love_assert_argc(L, lua_gettop(L) >= 7);
 		name = luaL_checkstring(L, 2);
 		title = luaL_checkstring(L, 3);
@@ -1821,10 +2018,13 @@ static int nk_love_window(lua_State *L)
 	lua_call(L, lua_gettop(L) - 3, 1);
 	int open = lua_toboolean(L, -1);
 	lua_pop(L, 1);
-	if (open) {
+	if (open)
+	{
 		lua_pushvalue(L, 1);
 		lua_call(L, 1, 0);
-	} else {
+	}
+	else
+	{
 		lua_pop(L, 1);
 	}
 	lua_getfield(L, -1, "windowEnd");
@@ -2077,7 +2277,8 @@ static int nk_love_window_hide(lua_State *L)
 static int nk_love_layout_row(lua_State *L)
 {
 	int argc = lua_gettop(L);
-	if (argc == 5 && lua_isfunction(L, 5)) {
+	if (argc == 5 && lua_isfunction(L, 5))
+	{
 		nk_love_assert(L, lua_checkstack(L, 3), "%s: failed to allocate stack space");
 		lua_pushvalue(L, 1);
 		lua_insert(L, 2);
@@ -2091,37 +2292,50 @@ static int nk_love_layout_row(lua_State *L)
 		lua_getfield(L, 1, "layoutRowEnd");
 		lua_insert(L, 1);
 		lua_call(L, 1, 0);
-	} else {
+	}
+	else
+	{
 		nk_love_assert_argc(L, argc >= 4 && argc <= 5);
 		nk_love_assert_context(L, 1);
 		enum nk_layout_format format = nk_love_checkformat(L, 2);
 		float height = luaL_checknumber(L, 3);
 		int use_ratios = 0;
-		if (format == NK_DYNAMIC) {
+		if (format == NK_DYNAMIC)
+		{
 			nk_love_assert_argc(L, argc == 4);
-			if (lua_isnumber(L, 4)) {
+			if (lua_isnumber(L, 4))
+			{
 				int cols = luaL_checkint(L, 4);
 				nk_layout_row_dynamic(&context->nkctx, height, cols);
-			} else {
-				if (!lua_istable(L, 4))
-					luaL_argerror(L, 4, "should be a number or table");
-				use_ratios = 1;
 			}
-		} else if (format == NK_STATIC) {
-			if (argc == 5) {
-				int item_width = luaL_checkint(L, 4);
-				int cols = luaL_checkint(L, 5);
-				nk_layout_row_static(&context->nkctx, height, item_width, cols);
-			} else {
+			else
+			{
 				if (!lua_istable(L, 4))
 					luaL_argerror(L, 4, "should be a number or table");
 				use_ratios = 1;
 			}
 		}
-		if (use_ratios) {
+		else if (format == NK_STATIC)
+		{
+			if (argc == 5)
+			{
+				int item_width = luaL_checkint(L, 4);
+				int cols = luaL_checkint(L, 5);
+				nk_layout_row_static(&context->nkctx, height, item_width, cols);
+			}
+			else
+			{
+				if (!lua_istable(L, 4))
+					luaL_argerror(L, 4, "should be a number or table");
+				use_ratios = 1;
+			}
+		}
+		if (use_ratios)
+		{
 			int cols = lua_objlen(L, -1);
 			int i, j;
-			for (i = 1, j = context->layout_ratio_count; i <= cols && j < NK_LOVE_MAX_RATIOS; ++i, ++j) {
+			for (i = 1, j = context->layout_ratio_count; i <= cols && j < NK_LOVE_MAX_RATIOS; ++i, ++j)
+			{
 				lua_rawgeti(L, -1, i);
 				if (!lua_isnumber(L, -1))
 					luaL_argerror(L, lua_gettop(L) - 1, "should contain numbers only");
@@ -2177,17 +2391,25 @@ static int nk_love_layout_template_push(lua_State *L)
 	nk_love_assert_argc(L, lua_gettop(L) == 2 || lua_gettop(L) == 3);
 	nk_love_assert_context(L, 1);
 	const char *mode = luaL_checkstring(L, 2);
-	if (!strcmp(mode, "dynamic")) {
+	if (!strcmp(mode, "dynamic"))
+	{
 		nk_love_assert_argc(L, lua_gettop(L) == 2);
 		nk_layout_row_template_push_dynamic(&context->nkctx);
-	} else {
+	}
+	else
+	{
 		nk_love_assert_argc(L, lua_gettop(L) == 3);
 		float width = luaL_checknumber(L, 3);
-		if (!strcmp(mode, "variable")) {
+		if (!strcmp(mode, "variable"))
+		{
 			nk_layout_row_template_push_variable(&context->nkctx, width);
-		} else if (!strcmp(mode, "static")) {
+		}
+		else if (!strcmp(mode, "static"))
+		{
 			nk_layout_row_template_push_static(&context->nkctx, width);
-		} else {
+		}
+		else
+		{
 			return luaL_argerror(L, 2, "expecting 'dynamic', 'variable', or 'static' modes");
 		}
 	}
@@ -2400,12 +2622,15 @@ static int nk_love_group(lua_State *L)
 	lua_call(L, lua_gettop(L) - 4, 1);
 	int open = lua_toboolean(L, -1);
 	lua_pop(L, 1);
-	if (open) {
+	if (open)
+	{
 		lua_call(L, 1, 0);
 		lua_getfield(L, 1, "groupEnd");
 		lua_insert(L, 1);
 		lua_call(L, 1, 0);
-	} else {
+	}
+	else
+	{
 		lua_pop(L, 3);
 	}
 	return 0;
@@ -2443,7 +2668,8 @@ static int nk_love_tree_push(lua_State *L)
 	const char *title = luaL_checkstring(L, 3);
 	struct nk_image image;
 	int use_image = 0;
-	if (argc >= 4 && !lua_isnil(L, 4)) {
+	if (argc >= 4 && !lua_isnil(L, 4))
+	{
 		nk_love_checkImage(L, 4, &image);
 		use_image = 1;
 	}
@@ -2487,7 +2713,8 @@ static int nk_love_tree(lua_State *L)
 	lua_call(L, lua_gettop(L) - 4, 1);
 	int open = lua_toboolean(L, -1);
 	lua_pop(L, 1);
-	if (open) {
+	if (open)
+	{
 		lua_call(L, 1, 0);
 		lua_getfield(L, 1, "treePop");
 		lua_insert(L, 1);
@@ -2505,7 +2732,8 @@ static int nk_love_tree_state_push(lua_State *L)
 	const char *title = luaL_checkstring(L, 3);
 	struct nk_image image;
 	int use_image = 0;
-	if (argc >= 4 && !lua_isnil(L, 4)) {
+	if (argc >= 4 && !lua_isnil(L, 4))
+	{
 		nk_love_checkImage(L, 4, &image);
 		use_image = 1;
 	}
@@ -2546,7 +2774,8 @@ static int nk_love_tree_state(lua_State *L)
 	lua_call(L, lua_gettop(L) - 4, 1);
 	int open = lua_toboolean(L, -1);
 	lua_pop(L, 1);
-	if (open) {
+	if (open)
+	{
 		lua_call(L, 1, 0);
 		lua_getfield(L, 1, "treeStatePop");
 		lua_insert(L, 1);
@@ -2622,23 +2851,28 @@ static int nk_love_label(lua_State *L)
 	int wrap = 0;
 	struct nk_color color;
 	int use_color = 0;
-	if (argc >= 3) {
+	if (argc >= 3)
+	{
 		const char *align_string = luaL_checkstring(L, 3);
 		if (!strcmp(align_string, "wrap"))
 			wrap = 1;
 		else
 			align = nk_love_checkalign(L, 3);
-		if (argc >= 4) {
+		if (argc >= 4)
+		{
 			color = nk_love_checkcolor(L, 4);
 			use_color = 1;
 		}
 	}
-	if (use_color) {
+	if (use_color)
+	{
 		if (wrap)
 			nk_label_colored_wrap(&context->nkctx, text, color);
 		else
 			nk_label_colored(&context->nkctx, text, align, color);
-	} else {
+	}
+	else
+	{
 		if (wrap)
 			nk_label_wrap(&context->nkctx, text);
 		else
@@ -2654,9 +2888,12 @@ static int nk_love_image(lua_State *L)
 	nk_love_assert_context(L, 1);
 	struct nk_image image;
 	nk_love_checkImage(L, 2, &image);
-	if (argc == 2) {
+	if (argc == 2)
+	{
 		nk_image(&context->nkctx, image);
-	} else {
+	}
+	else
+	{
 		float x = luaL_checknumber(L, 3);
 		float y = luaL_checknumber(L, 4);
 		float w = luaL_checknumber(L, 5);
@@ -2681,22 +2918,30 @@ static int nk_love_button(lua_State *L)
 	struct nk_color color;
 	enum nk_symbol_type symbol = NK_SYMBOL_NONE;
 	struct nk_image image;
-	if (argc >= 3 && !lua_isnil(L, 3)) {
-		if (lua_isstring(L, 3)) {
-			if (nk_love_is_color(L, 3)) {
+	if (argc >= 3 && !lua_isnil(L, 3))
+	{
+		if (lua_isstring(L, 3))
+		{
+			if (nk_love_is_color(L, 3))
+			{
 				color = nk_love_checkcolor(L, 3);
 				use_color = 1;
-			} else {
+			}
+			else
+			{
 				symbol = nk_love_checksymbol(L, 3);
 			}
-		} else {
+		}
+		else
+		{
 			nk_love_checkImage(L, 3, &image);
 			use_image = 1;
 		}
 	}
 	nk_flags align = context->nkctx.style.button.text_alignment;
 	int activated = 0;
-	if (title != NULL) {
+	if (title != NULL)
+	{
 		if (use_color)
 			nk_love_assert(L, 0, "%s: color buttons can't have titles");
 		else if (symbol != NK_SYMBOL_NONE)
@@ -2705,7 +2950,9 @@ static int nk_love_button(lua_State *L)
 			activated = nk_button_image_label(&context->nkctx, image, title, align);
 		else
 			activated = nk_button_label(&context->nkctx, title);
-	} else {
+	}
+	else
+	{
 		if (use_color)
 			activated = nk_button_color(&context->nkctx, color);
 		else if (symbol != NK_SYMBOL_NONE)
@@ -2750,22 +2997,28 @@ static int nk_love_checkbox(lua_State *L)
 	nk_love_assert_argc(L, lua_gettop(L) == 3);
 	nk_love_assert_context(L, 1);
 	const char *text = luaL_checkstring(L, 2);
-	if (lua_isboolean(L, 3)) {
+	if (lua_isboolean(L, 3))
+	{
 		int value = lua_toboolean(L, 3);
 		value = nk_check_label(&context->nkctx, text, value);
 		lua_pushboolean(L, value);
-	} else if (lua_istable(L, 3)) {
+	}
+	else if (lua_istable(L, 3))
+	{
 		lua_getfield(L, 3, "value");
 		if (!lua_isboolean(L, -1))
 			luaL_argerror(L, 3, "should have a boolean value");
 		int value = lua_toboolean(L, -1);
 		int changed = nk_checkbox_label(&context->nkctx, text, &value);
-		if (changed) {
+		if (changed)
+		{
 			lua_pushboolean(L, value);
 			lua_setfield(L, 3, "value");
 		}
 		lua_pushboolean(L, changed);
-	} else {
+	}
+	else
+	{
 		luaL_typerror(L, 3, "boolean or table");
 	}
 	return 1;
@@ -2780,7 +3033,8 @@ static int nk_love_radio(lua_State *L)
 	const char *text = name;
 	if (argc == 4)
 		text = luaL_checkstring(L, 3);
-	if (lua_isstring(L, -1)) {
+	if (lua_isstring(L, -1))
+	{
 		const char *value = lua_tostring(L, -1);
 		int active = !strcmp(value, name);
 		active = nk_option_label(&context->nkctx, text, active);
@@ -2788,19 +3042,24 @@ static int nk_love_radio(lua_State *L)
 			lua_pushstring(L, name);
 		else
 			lua_pushstring(L, value);
-	} else if (lua_istable(L, -1)) {
+	}
+	else if (lua_istable(L, -1))
+	{
 		lua_getfield(L, -1, "value");
 		if (!lua_isstring(L, -1))
 			luaL_argerror(L, argc, "should have a string value");
 		const char *value = lua_tostring(L, -1);
 		int active = !strcmp(value, name);
 		int changed = nk_radio_label(&context->nkctx, text, &active);
-		if (changed && active) {
+		if (changed && active)
+		{
 			lua_pushstring(L, name);
 			lua_setfield(L, -3, "value");
 		}
 		lua_pushboolean(L, changed);
-	} else {
+	}
+	else
+	{
 		luaL_typerror(L, argc, "string or table");
 	}
 	return 1;
@@ -2814,21 +3073,25 @@ static int nk_love_selectable(lua_State *L)
 	const char *text = luaL_checkstring(L, 2);
 	struct nk_image image;
 	int use_image = 0;
-	if (argc >= 4 && !lua_isnil(L, 3)) {
+	if (argc >= 4 && !lua_isnil(L, 3))
+	{
 		nk_love_checkImage(L, 3, &image);
 		use_image = 1;
 	}
 	nk_flags align = NK_TEXT_LEFT;
 	if (argc >= 5)
 		align = nk_love_checkalign(L, 4);
-	if (lua_isboolean(L, -1)) {
+	if (lua_isboolean(L, -1))
+	{
 		int value = lua_toboolean(L, -1);
 		if (use_image)
 			value = nk_select_image_label(&context->nkctx, image, text, align, value);
 		else
 			value = nk_select_label(&context->nkctx, text, align, value);
 		lua_pushboolean(L, value);
-	} else if (lua_istable(L, -1)) {
+	}
+	else if (lua_istable(L, -1))
+	{
 		lua_getfield(L, -1, "value");
 		if (!lua_isboolean(L, -1))
 			luaL_argerror(L, argc, "should have a boolean value");
@@ -2838,12 +3101,15 @@ static int nk_love_selectable(lua_State *L)
 			changed = nk_selectable_image_label(&context->nkctx, image, text, align, &value);
 		else
 			changed = nk_selectable_label(&context->nkctx, text, align, &value);
-		if (changed) {
+		if (changed)
+		{
 			lua_pushboolean(L, value);
 			lua_setfield(L, -3, "value");
 		}
 		lua_pushboolean(L, changed);
-	} else {
+	}
+	else
+	{
 		luaL_typerror(L, argc, "boolean or table");
 	}
 	return 1;
@@ -2856,22 +3122,28 @@ static int nk_love_slider(lua_State *L)
 	float min = luaL_checknumber(L, 2);
 	float max = luaL_checknumber(L, 4);
 	float step = luaL_checknumber(L, 5);
-	if (lua_isnumber(L, 3)) {
+	if (lua_isnumber(L, 3))
+	{
 		float value = lua_tonumber(L, 3);
 		value = nk_slide_float(&context->nkctx, min, value, max, step);
 		lua_pushnumber(L, value);
-	} else if (lua_istable(L, 3)) {
+	}
+	else if (lua_istable(L, 3))
+	{
 		lua_getfield(L, 3, "value");
 		if (!lua_isnumber(L, -1))
 			luaL_argerror(L, 3, "should have a number value");
 		float value = lua_tonumber(L, -1);
 		int changed = nk_slider_float(&context->nkctx, min, &value, max, step);
-		if (changed) {
+		if (changed)
+		{
 			lua_pushnumber(L, value);
 			lua_setfield(L, 3, "value");
 		}
 		lua_pushboolean(L, changed);
-	} else {
+	}
+	else
+	{
 		luaL_typerror(L, 3, "number or table");
 	}
 	return 1;
@@ -2886,22 +3158,28 @@ static int nk_love_progress(lua_State *L)
 	int modifiable = 0;
 	if (argc >= 4 && !lua_isnil(L, 4))
 		modifiable = nk_love_checkboolean(L, 4);
-	if (lua_isnumber(L, 2)) {
+	if (lua_isnumber(L, 2))
+	{
 		nk_size value = lua_tonumber(L, 2);
 		value = nk_prog(&context->nkctx, value, max, modifiable);
 		lua_pushnumber(L, value);
-	} else if (lua_istable(L, 2)) {
+	}
+	else if (lua_istable(L, 2))
+	{
 		lua_getfield(L, 2, "value");
 		if (!lua_isnumber(L, -1))
 			luaL_argerror(L, 2, "should have a number value");
-		nk_size value = (nk_size) lua_tonumber(L, -1);
+		nk_size value = (nk_size)lua_tonumber(L, -1);
 		int changed = nk_progress(&context->nkctx, &value, max, modifiable);
-		if (changed) {
+		if (changed)
+		{
 			lua_pushnumber(L, value);
 			lua_setfield(L, 2, "value");
 		}
 		lua_pushboolean(L, changed);
-	} else {
+	}
+	else
+	{
 		luaL_typerror(L, 2, "number or table");
 	}
 	return 1;
@@ -2915,28 +3193,34 @@ static int nk_love_color_picker(lua_State *L)
 	enum nk_color_format format = NK_RGB;
 	if (argc >= 3)
 		format = nk_love_checkcolorformat(L, 3);
-	if (lua_isstring(L, 2)) {
+	if (lua_isstring(L, 2))
+	{
 		struct nk_colorf color = nk_love_checkcolorf(L, 2);
 		color = nk_color_picker(&context->nkctx, color, format);
 		char new_color_string[10];
-		nk_love_color((int) (color.r * 255), (int) (color.g * 255),
-				(int) (color.b * 255), (int) (color.a * 255), new_color_string);
+		nk_love_color((int)(color.r * 255), (int)(color.g * 255),
+					  (int)(color.b * 255), (int)(color.a * 255), new_color_string);
 		lua_pushstring(L, new_color_string);
-	} else if (lua_istable(L, 2)) {
+	}
+	else if (lua_istable(L, 2))
+	{
 		lua_getfield(L, 2, "value");
 		if (!nk_love_is_color(L, -1))
 			luaL_argerror(L, 2, "should have a color string value");
 		struct nk_colorf color = nk_love_checkcolorf(L, -1);
 		int changed = nk_color_pick(&context->nkctx, &color, format);
-		if (changed) {
+		if (changed)
+		{
 			char new_color_string[10];
-			nk_love_color((int) (color.r * 255), (int) (color.g * 255),
-					(int) (color.b * 255), (int) (color.a * 255), new_color_string);
+			nk_love_color((int)(color.r * 255), (int)(color.g * 255),
+						  (int)(color.b * 255), (int)(color.a * 255), new_color_string);
 			lua_pushstring(L, new_color_string);
 			lua_setfield(L, 2, "value");
 		}
 		lua_pushboolean(L, changed);
-	} else {
+	}
+	else
+	{
 		luaL_typerror(L, 2, "string or table");
 	}
 	return 1;
@@ -2951,11 +3235,14 @@ static int nk_love_property(lua_State *L)
 	double max = luaL_checknumber(L, 5);
 	double step = luaL_checknumber(L, 6);
 	float inc_per_pixel = luaL_checknumber(L, 7);
-	if (lua_isnumber(L, 4)) {
+	if (lua_isnumber(L, 4))
+	{
 		double value = lua_tonumber(L, 4);
 		value = nk_propertyd(&context->nkctx, name, min, value, max, step, inc_per_pixel);
 		lua_pushnumber(L, value);
-	} else if (lua_istable(L, 4)) {
+	}
+	else if (lua_istable(L, 4))
+	{
 		lua_getfield(L, 4, "value");
 		if (!lua_isnumber(L, -1))
 			luaL_argerror(L, 4, "should have a number value");
@@ -2963,12 +3250,15 @@ static int nk_love_property(lua_State *L)
 		double old = value;
 		nk_property_double(&context->nkctx, name, min, &value, max, step, inc_per_pixel);
 		int changed = value != old;
-		if (changed) {
+		if (changed)
+		{
 			lua_pushnumber(L, value);
 			lua_setfield(L, 4, "value");
 		}
 		lua_pushboolean(L, changed);
-	} else {
+	}
+	else
+	{
 		luaL_typerror(L, 4, "number or table");
 	}
 	return 1;
@@ -3074,7 +3364,8 @@ static int nk_love_popup(lua_State *L)
 	lua_call(L, lua_gettop(L) - 4, 1);
 	int open = lua_toboolean(L, -1);
 	lua_pop(L, 1);
-	if (open) {
+	if (open)
+	{
 		lua_call(L, 1, 0);
 		lua_getfield(L, 1, "popupEnd");
 		lua_insert(L, 1);
@@ -3110,7 +3401,8 @@ static int nk_love_combobox(lua_State *L)
 	int argc = lua_gettop(L);
 	nk_love_assert_argc(L, argc >= 3 && argc <= 6);
 	nk_love_assert_context(L, 1);
-	if (lua_isfunction(L, -1)) {
+	if (lua_isfunction(L, -1))
+	{
 		nk_love_assert(L, lua_checkstack(L, 3), "%s: failed to allocate stack space");
 		lua_pushvalue(L, 1);
 		lua_insert(L, 2);
@@ -3122,7 +3414,8 @@ static int nk_love_combobox(lua_State *L)
 		lua_call(L, lua_gettop(L) - 4, 1);
 		int open = lua_toboolean(L, -1);
 		lua_pop(L, 1);
-		if (open) {
+		if (open)
+		{
 			lua_call(L, 1, 0);
 			lua_getfield(L, 1, "comboboxEnd");
 			lua_insert(L, 1);
@@ -3133,7 +3426,8 @@ static int nk_love_combobox(lua_State *L)
 	if (!lua_istable(L, 3))
 		luaL_typerror(L, 3, "table");
 	int i;
-	for (i = 0; i < NK_LOVE_COMBOBOX_MAX_ITEMS && lua_checkstack(L, 4); ++i) {
+	for (i = 0; i < NK_LOVE_COMBOBOX_MAX_ITEMS && lua_checkstack(L, 4); ++i)
+	{
 		lua_rawgeti(L, 3, i + 1);
 		if (lua_isstring(L, -1))
 			combobox_items[i] = lua_tostring(L, -1);
@@ -3151,11 +3445,14 @@ static int nk_love_combobox(lua_State *L)
 		size.x = luaL_checknumber(L, 5);
 	if (argc >= 6 && !lua_isnil(L, 6))
 		size.y = luaL_checknumber(L, 6);
-	if (lua_isnumber(L, 2)) {
+	if (lua_isnumber(L, 2))
+	{
 		int value = luaL_checkinteger(L, 2) - 1;
 		value = nk_combo(&context->nkctx, combobox_items, i, value, item_height, size);
 		lua_pushnumber(L, value + 1);
-	} else if (lua_istable(L, 2)) {
+	}
+	else if (lua_istable(L, 2))
+	{
 		lua_getfield(L, 2, "value");
 		if (!lua_isnumber(L, -1))
 			luaL_argerror(L, 2, "should have a number value");
@@ -3163,12 +3460,15 @@ static int nk_love_combobox(lua_State *L)
 		int old = value;
 		nk_combobox(&context->nkctx, combobox_items, i, &value, item_height, size);
 		int changed = value != old;
-		if (changed) {
+		if (changed)
+		{
 			lua_pushnumber(L, value + 1);
 			lua_setfield(L, 2, "value");
 		}
 		lua_pushboolean(L, changed);
-	} else {
+	}
+	else
+	{
 		luaL_typerror(L, 2, "number or table");
 	}
 	return 1;
@@ -3187,15 +3487,22 @@ static int nk_love_combobox_begin(lua_State *L)
 	enum nk_symbol_type symbol = NK_SYMBOL_NONE;
 	struct nk_image image;
 	int use_image = 0;
-	if (argc >= 3 && !lua_isnil(L, 3)) {
-		if (lua_isstring(L, 3)) {
-			if (nk_love_is_color(L, 3)) {
+	if (argc >= 3 && !lua_isnil(L, 3))
+	{
+		if (lua_isstring(L, 3))
+		{
+			if (nk_love_is_color(L, 3))
+			{
 				color = nk_love_checkcolor(L, 3);
 				use_color = 1;
-			} else {
+			}
+			else
+			{
 				symbol = nk_love_checksymbol(L, 3);
 			}
-		} else {
+		}
+		else
+		{
 			nk_love_checkImage(L, 3, &image);
 			use_image = 1;
 		}
@@ -3207,7 +3514,8 @@ static int nk_love_combobox_begin(lua_State *L)
 	if (argc >= 5 && !lua_isnil(L, 5))
 		size.y = luaL_checknumber(L, 5);
 	int open = 0;
-	if (text != NULL) {
+	if (text != NULL)
+	{
 		if (use_color)
 			nk_love_assert(L, 0, "%s: color comboboxes can't have titles");
 		else if (symbol != NK_SYMBOL_NONE)
@@ -3216,7 +3524,9 @@ static int nk_love_combobox_begin(lua_State *L)
 			open = nk_combo_begin_image_label(&context->nkctx, text, image, size);
 		else
 			open = nk_combo_begin_label(&context->nkctx, text, size);
-	} else {
+	}
+	else
+	{
 		if (use_color)
 			open = nk_combo_begin_color(&context->nkctx, color, size);
 		else if (symbol != NK_SYMBOL_NONE)
@@ -3239,10 +3549,14 @@ static int nk_love_combobox_item(lua_State *L)
 	enum nk_symbol_type symbol = NK_SYMBOL_NONE;
 	struct nk_image image;
 	int use_image = 0;
-	if (argc >= 3 && !lua_isnil(L, 3)) {
-		if (lua_isstring(L, 3)) {
+	if (argc >= 3 && !lua_isnil(L, 3))
+	{
+		if (lua_isstring(L, 3))
+		{
 			symbol = nk_love_checksymbol(L, 3);
-		} else {
+		}
+		else
+		{
 			nk_love_checkImage(L, 3, &image);
 			use_image = 1;
 		}
@@ -3304,10 +3618,14 @@ static int nk_love_contextual_item(lua_State *L)
 	enum nk_symbol_type symbol = NK_SYMBOL_NONE;
 	struct nk_image image;
 	int use_image = 0;
-	if (argc >= 3 && !lua_isnil(L, 3)) {
-		if (lua_isstring(L, 3)) {
+	if (argc >= 3 && !lua_isnil(L, 3))
+	{
+		if (lua_isstring(L, 3))
+		{
 			symbol = nk_love_checksymbol(L, 3);
-		} else {
+		}
+		else
+		{
 			nk_love_checkImage(L, 3, &image);
 			use_image = 1;
 		}
@@ -3358,7 +3676,8 @@ static int nk_love_contextual(lua_State *L)
 	lua_call(L, lua_gettop(L) - 4, 1);
 	int open = lua_toboolean(L, -1);
 	lua_pop(L, 1);
-	if (open) {
+	if (open)
+	{
 		lua_call(L, 1, 0);
 		lua_getfield(L, 1, "contextualEnd");
 		lua_insert(L, 1);
@@ -3387,7 +3706,8 @@ static int nk_love_tooltip_end(lua_State *L)
 
 static int nk_love_tooltip(lua_State *L)
 {
-	if (lua_gettop(L) == 3) {
+	if (lua_gettop(L) == 3)
+	{
 		nk_love_assert(L, lua_checkstack(L, 3), "%s: failed to allocate stack space");
 		if (!lua_isfunction(L, -1))
 			luaL_typerror(L, lua_gettop(L), "function");
@@ -3401,13 +3721,16 @@ static int nk_love_tooltip(lua_State *L)
 		lua_call(L, 2, 1);
 		int open = lua_toboolean(L, -1);
 		lua_pop(L, 1);
-		if (open) {
+		if (open)
+		{
 			lua_call(L, 1, 0);
 			lua_getfield(L, 1, "tooltipEnd");
 			lua_insert(L, 1);
 			lua_call(L, 1, 0);
 		}
-	} else {
+	}
+	else
+	{
 		nk_love_assert_argc(L, lua_gettop(L) == 2);
 		nk_love_assert_context(L, 1);
 		const char *text = luaL_checkstring(L, 2);
@@ -3462,9 +3785,12 @@ static int nk_love_menu_begin(lua_State *L)
 	enum nk_symbol_type symbol = NK_SYMBOL_NONE;
 	struct nk_image image;
 	int use_image = 0;
-	if (lua_isstring(L, 3)) {
+	if (lua_isstring(L, 3))
+	{
 		symbol = nk_love_checksymbol(L, 3);
-	} else if (!lua_isnil(L, 3)) {
+	}
+	else if (!lua_isnil(L, 3))
+	{
 		nk_love_checkImage(L, 3, &image);
 		use_image = 1;
 	}
@@ -3494,10 +3820,14 @@ static int nk_love_menu_item(lua_State *L)
 	enum nk_symbol_type symbol = NK_SYMBOL_NONE;
 	struct nk_image image;
 	int use_image = 0;
-	if (argc >= 3 && !lua_isnil(L, 3)) {
-		if (lua_isstring(L, 3)) {
+	if (argc >= 3 && !lua_isnil(L, 3))
+	{
+		if (lua_isstring(L, 3))
+		{
 			symbol = nk_love_checksymbol(L, 3);
-		} else {
+		}
+		else
+		{
 			nk_love_checkImage(L, 3, &image);
 			use_image = 1;
 		}
@@ -3548,7 +3878,8 @@ static int nk_love_menu(lua_State *L)
 	lua_call(L, lua_gettop(L) - 4, 1);
 	int open = lua_toboolean(L, -1);
 	lua_pop(L, 1);
-	if (open) {
+	if (open)
+	{
 		lua_call(L, 1, 0);
 		lua_getfield(L, 1, "menuEnd");
 		lua_insert(L, 1);
@@ -3573,13 +3904,14 @@ static int nk_love_style_default(lua_State *L)
 	return 0;
 }
 
-#define NK_LOVE_LOAD_COLOR(type) \
-	lua_getfield(L, -1, (type)); \
-	if (!nk_love_is_color(L, -1)) { \
+#define NK_LOVE_LOAD_COLOR(type)                                                               \
+	lua_getfield(L, -1, (type));                                                               \
+	if (!nk_love_is_color(L, -1))                                                              \
+	{                                                                                          \
 		const char *msg = lua_pushfstring(L, "%%s: table missing color value for '%s'", type); \
-		nk_love_assert(L, 0, msg); \
-	} \
-	colors[index++] = nk_love_checkcolor(L, -1); \
+		nk_love_assert(L, 0, msg);                                                             \
+	}                                                                                          \
+	colors[index++] = nk_love_checkcolor(L, -1);                                               \
 	lua_pop(L, 1)
 
 static int nk_love_style_load_colors(lua_State *L)
@@ -3634,13 +3966,15 @@ static int nk_love_style_set_font(lua_State *L)
 static int nk_love_style_push_color(lua_State *L, struct nk_color *field)
 {
 	struct nk_love_context *ctx = nk_love_checkcontext(L, 1);
-	if (!nk_love_is_color(L, -1)) {
+	if (!nk_love_is_color(L, -1))
+	{
 		const char *msg = lua_pushfstring(L, "%%s: bad color string '%s'", lua_tostring(L, -1));
 		nk_love_assert(L, 0, msg);
 	}
 	struct nk_color color = nk_love_checkcolor(L, -1);
 	int success = nk_style_push_color(&ctx->nkctx, field, color);
-	if (success) {
+	if (success)
+	{
 		lua_pushstring(L, "color");
 		size_t stack_size = lua_objlen(L, 2);
 		lua_rawseti(L, 2, stack_size + 1);
@@ -3662,7 +3996,8 @@ static int nk_love_style_push_vec2(lua_State *L, struct nk_vec2 *field)
 	vec2.y = lua_tonumber(L, -1);
 	lua_pop(L, 2);
 	int success = nk_style_push_vec2(&ctx->nkctx, field, vec2);
-	if (success) {
+	if (success)
+	{
 		lua_pushstring(L, "vec2");
 		size_t stack_size = lua_objlen(L, 2);
 		lua_rawseti(L, 2, stack_size + 1);
@@ -3674,19 +4009,24 @@ static int nk_love_style_push_item(lua_State *L, struct nk_style_item *field)
 {
 	struct nk_love_context *ctx = nk_love_checkcontext(L, 1);
 	struct nk_style_item item;
-	if (lua_isstring(L, -1)) {
-		if (!nk_love_is_color(L, -1)) {
+	if (lua_isstring(L, -1))
+	{
+		if (!nk_love_is_color(L, -1))
+		{
 			const char *msg = lua_pushfstring(L, "%%s: bad color string '%s'", lua_tostring(L, -1));
 			nk_love_assert(L, 0, msg);
 		}
 		item.type = NK_STYLE_ITEM_COLOR;
 		item.data.color = nk_love_checkcolor(L, -1);
-	} else {
+	}
+	else
+	{
 		item.type = NK_STYLE_ITEM_IMAGE;
 		nk_love_checkImage(L, -1, &item.data.image);
 	}
 	int success = nk_style_push_style_item(&ctx->nkctx, field, item);
-	if (success) {
+	if (success)
+	{
 		lua_pushstring(L, "item");
 		size_t stack_size = lua_objlen(L, 2);
 		lua_rawseti(L, 2, stack_size + 1);
@@ -3699,7 +4039,8 @@ static int nk_love_style_push_align(lua_State *L, nk_flags *field)
 	struct nk_love_context *ctx = nk_love_checkcontext(L, 1);
 	nk_flags align = nk_love_checkalign(L, -1);
 	int success = nk_style_push_flags(&ctx->nkctx, field, align);
-	if (success) {
+	if (success)
+	{
 		lua_pushstring(L, "flags");
 		size_t stack_size = lua_objlen(L, 2);
 		lua_rawseti(L, 2, stack_size + 1);
@@ -3712,7 +4053,8 @@ static int nk_love_style_push_float(lua_State *L, float *field)
 	struct nk_love_context *ctx = nk_love_checkcontext(L, 1);
 	float f = luaL_checknumber(L, -1);
 	int success = nk_style_push_float(&ctx->nkctx, field, f);
-	if (success) {
+	if (success)
+	{
 		lua_pushstring(L, "float");
 		size_t stack_size = lua_objlen(L, 2);
 		lua_rawseti(L, 2, stack_size + 1);
@@ -3725,7 +4067,8 @@ static int nk_love_style_push_font(lua_State *L, const struct nk_user_font **fie
 	struct nk_love_context *ctx = nk_love_checkcontext(L, 1);
 	nk_love_checkFont(L, -1, &context->fonts[context->font_count]);
 	int success = nk_style_push_font(&ctx->nkctx, &context->fonts[context->font_count++]);
-	if (success) {
+	if (success)
+	{
 		lua_pushstring(L, "font");
 		size_t stack_size = lua_objlen(L, 2);
 		lua_rawseti(L, 2, stack_size + 1);
@@ -3733,11 +4076,11 @@ static int nk_love_style_push_font(lua_State *L, const struct nk_user_font **fie
 	return success;
 }
 
-#define NK_LOVE_STYLE_PUSH(name, type, field) \
+#define NK_LOVE_STYLE_PUSH(name, type, field)                                    \
 	nk_love_assert(L, lua_istable(L, -1), "%s: " name " field must be a table"); \
-	lua_getfield(L, -1, name); \
-	if (!lua_isnil(L, -1)) \
-		nk_love_style_push_##type(L, field); \
+	lua_getfield(L, -1, name);                                                   \
+	if (!lua_isnil(L, -1))                                                       \
+		nk_love_style_push_##type(L, field);                                     \
 	lua_pop(L, 1);
 
 static void nk_love_style_push_text(lua_State *L, struct nk_style_text *style)
@@ -4070,22 +4413,36 @@ static int nk_love_style_pop(lua_State *L)
 	lua_rawseti(L, -3, stack_size);
 	stack_size = lua_objlen(L, -1);
 	size_t i;
-	for (i = stack_size; i > 0; --i) {
+	for (i = stack_size; i > 0; --i)
+	{
 		lua_rawgeti(L, -1, i);
 		const char *type = lua_tostring(L, -1);
-		if (!strcmp(type, "color")) {
+		if (!strcmp(type, "color"))
+		{
 			nk_style_pop_color(&ctx->nkctx);
-		} else if (!strcmp(type, "vec2")) {
+		}
+		else if (!strcmp(type, "vec2"))
+		{
 			nk_style_pop_vec2(&ctx->nkctx);
-		} else if (!strcmp(type, "item")) {
+		}
+		else if (!strcmp(type, "item"))
+		{
 			nk_style_pop_style_item(&ctx->nkctx);
-		} else if (!strcmp(type, "flags")) {
+		}
+		else if (!strcmp(type, "flags"))
+		{
 			nk_style_pop_flags(&ctx->nkctx);
-		} else if (!strcmp(type, "float")) {
+		}
+		else if (!strcmp(type, "float"))
+		{
 			nk_style_pop_float(&ctx->nkctx);
-		} else if (!strcmp(type, "font")) {
+		}
+		else if (!strcmp(type, "font"))
+		{
 			nk_style_pop_font(&ctx->nkctx);
-		} else {
+		}
+		else
+		{
 			const char *msg = lua_pushfstring(L, "%%s: bad style item type '%s'", lua_tostring(L, -1));
 			nk_love_assert(L, 0, msg);
 		}
@@ -4246,7 +4603,8 @@ static int nk_love_line(lua_State *L)
 	nk_love_assert_argc(L, argc >= 5 && argc % 2 == 1);
 	nk_love_assert_context(L, 1);
 	int i;
-	for (i = 0; i < argc - 1; ++i) {
+	for (i = 0; i < argc - 1; ++i)
+	{
 		nk_love_assert(L, lua_isnumber(L, i + 2), "%s: point coordinates should be numbers");
 		points[i] = lua_tonumber(L, i + 2);
 	}
@@ -4284,7 +4642,8 @@ static int nk_love_polygon(lua_State *L)
 	nk_love_assert_context(L, 1);
 	enum nk_love_draw_mode mode = nk_love_checkdraw(L, 2);
 	int i;
-	for (i = 0; i < argc - 2; ++i) {
+	for (i = 0; i < argc - 2; ++i)
+	{
 		nk_love_assert(L, lua_isnumber(L, i + 3), "%s: point coordinates should be numbers");
 		points[i] = lua_tonumber(L, i + 3);
 	}
@@ -4489,13 +4848,13 @@ static int nk_love_input_is_hovered(lua_State *L)
  */
 
 #define NK_LOVE_REGISTER(name, func) \
-	lua_pushcfunction(L, func); \
+	lua_pushcfunction(L, func);      \
 	lua_setfield(L, -2, name)
 
 LUALIB_API int luaopen_nuklear(lua_State *L)
 {
 	edit_buffer = nk_love_malloc(L, NK_LOVE_EDIT_BUFFER_LEN);
-	combobox_items = nk_love_malloc(L, sizeof(char*) * NK_LOVE_COMBOBOX_MAX_ITEMS);
+	combobox_items = nk_love_malloc(L, sizeof(char *) * NK_LOVE_COMBOBOX_MAX_ITEMS);
 	points = nk_love_malloc(L, sizeof(float) * NK_LOVE_MAX_POINTS * 2);
 
 	lua_newtable(L);
