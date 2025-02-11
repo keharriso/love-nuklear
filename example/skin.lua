@@ -6,9 +6,13 @@ local checkboxTexture = love.graphics.newImage 'skin/checkbox.png'
 local checkboxOff = {checkboxTexture, love.graphics.newQuad(0, 0, 51, 55, 58, 115)}
 local checkboxOn = {checkboxTexture, love.graphics.newQuad(0, 55, 58, 60, 58, 115)}
 local buttonTexture = love.graphics.newImage 'skin/button.png'
-local buttonNormal = {buttonTexture, love.graphics.newQuad(0, 0, 69, 52, 69, 156)}
 local buttonActive = {buttonTexture, love.graphics.newQuad(0, 52, 69, 52, 69, 156)}
 local buttonHover = {buttonTexture, love.graphics.newQuad(0, 104, 69, 52, 69, 156)}
+
+
+-- last 4 args are 9-patch t/l/b/r. These are encoded as the number of pixels from the corresponding
+-- edge (e.g. "4" for "r" means "4 pixels from the right edge", or w - 4).
+local buttonNormal = {buttonTexture, love.graphics.newQuad(0, 0, 69, 52, 69, 156), 25, 12, 22, 12}
 
 local style = {
 	['text'] = {
