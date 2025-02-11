@@ -46,12 +46,12 @@ static char *edit_buffer;
 static const char **combobox_items;
 static float *points;
 
-static struct nk_love_handle {
+struct nk_love_handle {
 	lua_State *L;
 	int ref;
 };
 
-static struct nk_love_font {
+struct nk_love_font {
 	struct nk_user_font font;
 	struct nk_love_handle handle;
 };
@@ -1536,7 +1536,7 @@ static int nk_love_frame_begin(lua_State *L)
 	lua_rawgeti(L, -1, love_handle->ref);
 	nk_love_checkFont(L, -1, &context->fonts[context->font_count]);
 	lua_pop(L, 1);
-	context->nkctx.style.font = &context->fonts[context->font_count++];
+	context->nkctx.style.font = &context->fonts[context->font_count++].font;
 	int i;
 	for (i = 0; i < context->nkctx.stacks.fonts.head; ++i) {
 		struct nk_config_stack_user_font_element *element = &context->nkctx.stacks.fonts.elements[i];
@@ -1544,7 +1544,7 @@ static int nk_love_frame_begin(lua_State *L)
 		lua_rawgeti(L, -1, love_handle->ref);
 		nk_love_checkFont(L, -1, &context->fonts[context->font_count]);
 		lua_pop(L, 1);
-		context->nkctx.stacks.fonts.elements[i].old_value = &context->fonts[context->font_count++];
+		context->nkctx.stacks.fonts.elements[i].old_value = &context->fonts[context->font_count++].font;
 	}
 	lua_pop(L, 1);
 	context->layout_ratio_count = 0;
@@ -3627,7 +3627,7 @@ static int nk_love_style_set_font(lua_State *L)
 	nk_love_assert_argc(L, lua_gettop(L) == 2);
 	struct nk_love_context *ctx = nk_love_checkcontext(L, 1);
 	nk_love_checkFont(L, 2, &ctx->fonts[ctx->font_count]);
-	nk_style_set_font(&ctx->nkctx, &ctx->fonts[ctx->font_count++]);
+	nk_style_set_font(&ctx->nkctx, &ctx->fonts[ctx->font_count++].font);
 	return 0;
 }
 
@@ -3724,7 +3724,7 @@ static int nk_love_style_push_font(lua_State *L, const struct nk_user_font **fie
 {
 	struct nk_love_context *ctx = nk_love_checkcontext(L, 1);
 	nk_love_checkFont(L, -1, &context->fonts[context->font_count]);
-	int success = nk_style_push_font(&ctx->nkctx, &context->fonts[context->font_count++]);
+	int success = nk_style_push_font(&ctx->nkctx, &context->fonts[context->font_count++].font);
 	if (success) {
 		lua_pushstring(L, "font");
 		size_t stack_size = lua_objlen(L, 2);
@@ -4400,7 +4400,7 @@ static int nk_love_text(lua_State *L)
 	float line_thickness;
 	struct nk_color color;
 	nk_love_getGraphics(L, &line_thickness, &color);
-	nk_draw_text(&context->nkctx.current->buffer, nk_rect(x, y, w, h), text, strlen(text), &context->fonts[context->font_count++], nk_rgba(0, 0, 0, 0), color);
+	nk_draw_text(&context->nkctx.current->buffer, nk_rect(x, y, w, h), text, strlen(text), &context->fonts[context->font_count++].font, nk_rgba(0, 0, 0, 0), color);
 	return 0;
 }
 
